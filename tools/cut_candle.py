@@ -1,11 +1,11 @@
 import sys, json, os; sys.path.insert(0,'tools')
 from spritecut import *
 TILE=int(sys.argv[1]) if len(sys.argv)>1 else 48
-FW,FH=TILE,int(TILE*1.25); SCALE=(FH-2)/134     # same world scale as the heroine
+FW,FH=TILE,int(TILE*1.25); SCALE=(FH-14)/68      # candle body ~68 px on the sheet -> ~46 px, player-sized like real Bomberman enemies
 OUT=f'assets/sprites/{TILE}'; os.makedirs(OUT,exist_ok=True)
 en=np.array(Image.open('assets/src/enemies_sheet.png').convert('RGBA'))
 panel=en[46:345,302:507].copy(); CBG=np.array([47.,10.,20.])
-cols=[(5,65),(72,135),(142,202)]; rows=[(6,67),(74,149),(152,227)]
+cols=[(5,65),(72,135),(142,202)]; rows=[(0,70),(72,150),(151,229)]
 names=['idle','move','hurt']
 out={}
 raw={}
