@@ -20,7 +20,7 @@ function step(){
   const atTile=Math.abs(hero.px-hero.x*T)<0.01&&Math.abs(hero.py-hero.y*T)<0.01;
   if(atTile){
     let want=null;
-    if(auto){autoT++; const seq=['right','down','left','up']; want=seq[Math.floor(autoT/40)%4]; if(autoT>170) want=null;}
+    if(auto){autoT++; const seq=['right','down','left','up']; want=seq[Math.floor(autoT/40)%4];}
     else if(keys.ArrowLeft)want='left';else if(keys.ArrowRight)want='right';else if(keys.ArrowUp)want='up';else if(keys.ArrowDown)want='down';
     if(want){hero.dir=want; const d={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[want]; if(!solid(hero.x+d[0],hero.y+d[1])){hero.x+=d[0];hero.y+=d[1];hero.moving=true}else hero.moving=false}
     else hero.moving=false;
@@ -32,8 +32,8 @@ function step(){
   candle.px+=Math.sign(candle.x*T-candle.px)*Math.min(candle.speed,Math.abs(candle.x*T-candle.px)); candle.t++;
   // draw
   for(let cy=0;cy<ROWS;cy++)for(let cx=0;cx<COLS;cx++){ctx.fillStyle=solid(cx,cy)?'#2a1a1a':((cx+cy)%2?'#5a0f1e':'#4e0c1a');ctx.fillRect(cx*T,cy*T,T,T);if(solid(cx,cy)){ctx.fillStyle='#c9a24a';ctx.fillRect(cx*T+4,cy*T+4,T-8,3);ctx.fillStyle='#161010';ctx.fillRect(cx*T+4,cy*T+T-6,T-8,3)}}
-  const bob=Math.round(Math.sin(candle.t/9)*3);
-  drawFrame(meta.anims.candle_move[Math.floor(candle.t/8)%4],candle.px,candle.py+bob);
+  const bob=Math.round(Math.sin(candle.t/11)*3);
+  drawFrame(meta.anims.candle_flicker[Math.floor(candle.t/5)%10],candle.px,candle.py+bob);
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
   drawFrame(an[Math.floor(hero.t/7)%an.length],hero.px,hero.py);
   requestAnimationFrame(step);

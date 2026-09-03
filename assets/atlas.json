@@ -189,6 +189,66 @@
    180,
    48,
    60
+  ],
+  "candle_flicker_0": [
+   48,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_1": [
+   96,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_2": [
+   144,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_3": [
+   192,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_4": [
+   240,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_5": [
+   288,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_6": [
+   336,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_7": [
+   384,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_8": [
+   432,
+   180,
+   48,
+   60
+  ],
+  "candle_flicker_9": [
+   0,
+   240,
+   48,
+   60
   ]
  },
  "anims": {
@@ -244,6 +304,18 @@
    "candle_hurt_0",
    "candle_hurt_1",
    "candle_hurt_2"
+  ],
+  "candle_flicker": [
+   "candle_flicker_0",
+   "candle_flicker_1",
+   "candle_flicker_2",
+   "candle_flicker_3",
+   "candle_flicker_4",
+   "candle_flicker_5",
+   "candle_flicker_6",
+   "candle_flicker_7",
+   "candle_flicker_8",
+   "candle_flicker_9"
   ],
   "candle_defeated": [
    "candle_defeated_0",
