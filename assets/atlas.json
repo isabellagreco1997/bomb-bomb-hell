@@ -94,158 +94,206 @@
    48,
    60
   ],
-  "heroine_idle_right": [
+  "heroine_cycle_left_4": [
    240,
+   60,
+   48,
+   60
+  ],
+  "heroine_cycle_left_5": [
+   288,
+   60,
+   48,
+   60
+  ],
+  "heroine_cycle_left_6": [
+   336,
+   60,
+   48,
+   60
+  ],
+  "heroine_cycle_left_7": [
+   384,
+   60,
+   48,
+   60
+  ],
+  "heroine_idle_right": [
+   432,
    60,
    48,
    60
   ],
   "heroine_cycle_right_0": [
-   288,
-   60,
+   0,
+   120,
    48,
    60
   ],
   "heroine_cycle_right_1": [
-   336,
-   60,
+   48,
+   120,
    48,
    60
   ],
   "heroine_cycle_right_2": [
-   384,
-   60,
+   96,
+   120,
    48,
    60
   ],
   "heroine_cycle_right_3": [
-   432,
-   60,
+   144,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_right_4": [
+   192,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_right_5": [
+   240,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_right_6": [
+   288,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_right_7": [
+   336,
+   120,
    48,
    60
   ],
   "candle_idle_0": [
-   0,
+   384,
    120,
    48,
    60
   ],
   "candle_idle_1": [
-   48,
+   432,
    120,
    48,
    60
   ],
   "candle_idle_2": [
-   96,
-   120,
+   0,
+   180,
    48,
    60
   ],
   "candle_move_0": [
-   144,
-   120,
+   48,
+   180,
    48,
    60
   ],
   "candle_move_1": [
-   192,
-   120,
+   96,
+   180,
    48,
    60
   ],
   "candle_move_2": [
-   240,
-   120,
+   144,
+   180,
    48,
    60
   ],
   "candle_hurt_0": [
-   288,
-   120,
+   192,
+   180,
    48,
    60
   ],
   "candle_hurt_1": [
-   336,
-   120,
+   240,
+   180,
    48,
    60
   ],
   "candle_hurt_2": [
-   384,
-   120,
+   288,
+   180,
    48,
    60
   ],
   "candle_defeated_0": [
-   432,
-   120,
+   336,
+   180,
    48,
    60
   ],
   "candle_defeated_1": [
-   0,
+   384,
    180,
    48,
    60
   ],
   "candle_flicker_0": [
-   48,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_1": [
-   96,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_2": [
-   144,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_3": [
-   192,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_4": [
-   240,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_5": [
-   288,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_6": [
-   336,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_7": [
-   384,
-   180,
-   48,
-   60
-  ],
-  "candle_flicker_8": [
    432,
    180,
    48,
    60
   ],
-  "candle_flicker_9": [
+  "candle_flicker_1": [
    0,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_2": [
+   48,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_3": [
+   96,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_4": [
+   144,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_5": [
+   192,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_6": [
+   240,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_7": [
+   288,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_8": [
+   336,
+   240,
+   48,
+   60
+  ],
+  "candle_flicker_9": [
+   384,
    240,
    48,
    60
@@ -274,7 +322,11 @@
    "heroine_cycle_left_0",
    "heroine_cycle_left_1",
    "heroine_cycle_left_2",
-   "heroine_cycle_left_3"
+   "heroine_cycle_left_3",
+   "heroine_cycle_left_4",
+   "heroine_cycle_left_5",
+   "heroine_cycle_left_6",
+   "heroine_cycle_left_7"
   ],
   "heroine_idle_left": [
    "heroine_idle_left"
@@ -283,7 +335,11 @@
    "heroine_cycle_right_0",
    "heroine_cycle_right_1",
    "heroine_cycle_right_2",
-   "heroine_cycle_right_3"
+   "heroine_cycle_right_3",
+   "heroine_cycle_right_4",
+   "heroine_cycle_right_5",
+   "heroine_cycle_right_6",
+   "heroine_cycle_right_7"
   ],
   "heroine_idle_right": [
    "heroine_idle_right"

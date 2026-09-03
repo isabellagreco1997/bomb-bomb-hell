@@ -55,12 +55,12 @@ cycles={}
 for d,upper_idx in (('down',[0,3,5,2]),('up',[0,3,5,2])):
     base=arr(f'{A}/heroine_idle_{d}.png'); hem=hem_row(base)
     ups=[arr(f'{A}/heroine_cycle_{d}_{i}.png') for i in upper_idx]      # head-locked drawn frames from build_walks
-    fr=[compose(ups[0],base,hem,(1,-1)), compose(ups[1],base,hem,(0,0),bob=-1), compose(ups[2],base,hem,(-1,1)), compose(ups[3],base,hem,(0,0),bob=-1)]
+    fr=[compose(ups[0],base,hem,(2,-2)), compose(ups[1],base,hem,(0,0),bob=-1), compose(ups[2],base,hem,(-2,2)), compose(ups[3],base,hem,(0,0),bob=-1)]
     cycles[d]=fr; print(d,'hem',hem)
 # ---- side: stride, recoil (legs closer), pass (legs under the hip, body up), recoil ----
 base=arr(f'{A}/heroine_idle_left.png'); hem=hem_row(base)
 al=base[hem:,:,3]>0; xs=np.nonzero(al.any(0))[0]; cx=leg_blobs(base,hem)
-def side_frame(upper, pull, bob=0, vertical=False):
+def side_frame(upper, pull, bob=0, vertical=False, swap=False):
     a=base.copy(); out=np.zeros_like(a)
     front=a[hem:,xs.min():cx]; back=a[hem:,cx:xs.max()+1]
     if vertical:
@@ -82,15 +82,29 @@ def side_frame(upper, pull, bob=0, vertical=False):
             else: o[:,:Wd+dx]=blk[:,-dx:]
             return o
         f=sh(front,pull); b=sh(back,-pull)
-        out[hem:,xs.min():cx]=f; out[hem:,cx:xs.max()+1]=np.where(b[...,3:4]>0,b,out[hem:,cx:xs.max()+1])
+        if swap:
+            # the other leg leads: same geometry as stride A, but the shading of the two legs is exchanged
+            # (front blob takes the far leg's darker tones and vice versa), so the eye reads the far leg stepping forward
+            def tones(blk):
+                px=blk[blk[...,3]>0][:,:3]; u=np.unique(px,axis=0); return u[np.argsort(u.sum(1))]
+            def remap(blk, src_t, dst_t):
+                o=blk.copy(); m=blk[...,3]>0; px=blk[m][:,:3]
+                idx=np.array([np.where((src_t==p).all(1))[0][0] for p in px]); q=(idx/(max(1,len(src_t)-1))*(len(dst_t)-1)).round().astype(int)
+                o[m,:3]=dst_t[q]; return o
+            tf,tb=tones(front),tones(back)
+            f=remap(f,tf,tb); b=remap(b,tb,tf)
+            out[hem:,xs.min():cx]=f; out[hem:,cx:xs.max()+1]=np.where(b[...,3:4]>0,b,out[hem:,cx:xs.max()+1])
+        else:
+            out[hem:,xs.min():cx]=f; out[hem:,cx:xs.max()+1]=np.where(b[...,3:4]>0,b,out[hem:,cx:xs.max()+1])
     up=upper.copy(); up[hem:]=0; m=up[...,3]>0; out[m]=up[m]
     if bob<0: o=np.zeros_like(out); o[:out.shape[0]+bob]=out[-bob:]; out=o
     return out
-ups=[arr(f'{A}/heroine_cycle_left_{i}.png') for i in (0,2,3,4)]
-cycles['left']=[side_frame(ups[0],0), side_frame(ups[1],3), side_frame(ups[2],6,bob=-1), side_frame(ups[3],3)]   # stride, recoil, pass (legs crossed under the hip, body up), recoil
+ups=[arr(f'{A}/heroine_cycle_left_{i}.png') for i in (0,2,3,4,5,6,1,2)]
+cycles['left']=[side_frame(ups[0],0), side_frame(ups[1],3), side_frame(ups[2],6,bob=-1), side_frame(ups[3],3,swap=True),
+                side_frame(ups[4],0,swap=True), side_frame(ups[5],3,swap=True), side_frame(ups[6],6,bob=-1), side_frame(ups[7],3)]   # stride A, recoil, pass, recoil, stride B (other leg leads), recoil, pass, recoil
 cycles['right']=[np.ascontiguousarray(f[:,::-1]) for f in cycles['left']]
 for d,fr in cycles.items():
-    for j in range(7):
+    for j in range(9):
         p=f'{A}/heroine_cycle_{d}_{j}.png'
         if os.path.exists(p): os.remove(p)
     for j,f in enumerate(fr): Image.fromarray(f,'RGBA').save(f'{A}/heroine_cycle_{d}_{j}.png')
