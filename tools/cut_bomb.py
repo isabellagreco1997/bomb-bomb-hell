@@ -19,7 +19,8 @@ bright=(f0[...,:3].sum(-1)>600)                                              # o
 core=body&~bright; core=ndimage.binary_fill_holes(core)
 top=int(ys.min()+(ys.max()-ys.min())*0.45)
 sph=core.copy(); sph[:top]=False                                              # sphere only, for width/centre (fuse and cap excluded)
-above=core.copy(); above[top:]=False; above&=(d>40)                          # above the sphere keep only the fuse and cap, not frame 0's dim spark glow
+above=core.copy(); above[top:]=False; above&=(d>40)                          # above the sphere keep only the fuse and cap
+glow=ndimage.binary_dilation(bright,iterations=28); above&=~glow             # and nothing near frame 0's sparkle: its glow would show later frames' background
 core=sph|above
 cys,cxs=np.nonzero(sph); body_w=cxs.max()-cxs.min(); body_bottom=cys.max(); cx=(cxs.min()+cxs.max())/2
 SCALE=40/body_w; print('sphere width',body_w,'scale',round(SCALE,3))
@@ -34,6 +35,13 @@ def frame(i):
 TICK=[0,15,30,45,60,75,90,105,114,120]
 tick=[frame(i) for i in TICK]
 q,pal=quantise(tick,40)
+# rim: the sphere is near-black and its edge vanishes on a dark floor. 1 px outline in the vein red the sheet already uses on the sphere edge.
+def rim(im):
+    a=np.array(im); al=a[...,3]>0
+    reds=a[al & (a[...,0]>120) & (a[...,1]<80) & (a[...,2]<80)][:,:3]; col=np.median(reds,0).astype('uint8') if len(reds) else np.array([150,30,30],'uint8')
+    ring=ndimage.binary_dilation(al,iterations=1)&~al
+    out=a.copy(); out[ring,:3]=col; out[ring,3]=255; return Image.fromarray(out,'RGBA')
+q=[rim(f) for f in q]
 for p in glob.glob(f'{A}/bomb_tick_*.png'): os.remove(p)
 for j,f in enumerate(q): f.save(f'{A}/bomb_tick_{j}.png')
 sheet(q,10,2,bg=(78,12,26,255)).save(f'{W}/strip_bomb96.png'); print('bomb frames',len(q))

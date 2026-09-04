@@ -5,6 +5,7 @@
 const T=48, COLS=13, ROWS=11, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T))));
 const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+const off=document.createElement('canvas'); off.width=128; off.height=128; const octx=off.getContext('2d'); octx.imageSmoothingEnabled=false;
 const atlas=new Image(); atlas.src='assets/atlas.png';
 let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
 // grid: 1 = pillar (every other cell, classic bomberman), 0 = floor
@@ -14,6 +15,19 @@ const candle={x:11,y:9,px:11*T,py:9*T,dir:'left',t:0,speed:1.0};
 const bombs=[]; const fires=[]; let hurtT=0; let candleState='alive'; let candleT=0; const RANGE=2;
 const keys={}; addEventListener('keydown',e=>{keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
+function drawBomb(b){
+  const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
+  const left=FUSE-b.t;
+  // pulse like the original: the sphere swells and shrinks, faster as the fuse runs out
+  const period=left>60?24:(left>30?12:6); const s=1+(Math.floor(b.t/(period/2))%2)*0.12;
+  const w=Math.round(f[2]*s), h=Math.round(f[3]*s);
+  const x=Math.round(b.x*T+T/2-w/2), y=Math.round(b.y*T+T-h+ (h-f[3])/2);
+  const flash=left<=36 && Math.floor(left/4)%2===0;      // red flashes in the last 0.6 s
+  if(!flash){ ctx.drawImage(atlas,f[0],f[1],f[2],f[3],x,y,w,h); return; }
+  octx.clearRect(0,0,128,128); octx.globalCompositeOperation='source-over'; octx.drawImage(atlas,f[0],f[1],f[2],f[3],0,0,f[2],f[3]);
+  octx.globalCompositeOperation='source-atop'; octx.fillStyle='rgba(255,40,40,0.55)'; octx.fillRect(0,0,f[2],f[3]);
+  ctx.drawImage(off,0,0,f[2],f[3],x,y,w,h);
+}
 function dropBomb(){ if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
@@ -52,7 +66,7 @@ function step(){
   candle.px+=Math.sign(candle.x*T-candle.px)*Math.min(candle.speed,Math.abs(candle.x*T-candle.px)); candle.t++;
   // draw
   for(let cy=0;cy<ROWS;cy++)for(let cx=0;cx<COLS;cx++){ctx.fillStyle=solid(cx,cy)?'#2a1a1a':((cx+cy)%2?'#5a0f1e':'#4e0c1a');ctx.fillRect(cx*T,cy*T,T,T);if(solid(cx,cy)){ctx.fillStyle='#c9a24a';ctx.fillRect(cx*T+4,cy*T+4,T-8,3);ctx.fillStyle='#161010';ctx.fillRect(cx*T+4,cy*T+T-6,T-8,3)}}
-  for(const b of bombs){ const tk=meta.anims.bomb_tick; drawFrame(tk[Math.min(tk.length-1,Math.floor(b.t/150*tk.length))],b.x*T,b.y*T); }
+  for(const b of bombs) drawBomb(b);
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
     for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
   const bob=Math.round(Math.sin(candle.t/11)*3);
