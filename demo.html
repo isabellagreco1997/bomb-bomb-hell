@@ -9,10 +9,14 @@ const off=document.createElement('canvas'); off.width=128; off.height=128; const
 const atlas=new Image(); atlas.src='assets/atlas.png';
 let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
 // voice lines: one random clip per bomb drop, never the same one twice in a row
-let dropClips=[]; let lastClip=-1; fetch('assets/audio/drop.json').then(r=>r.json()).then(list=>{dropClips=list.map(p=>{const a=new Audio(p); a.preload='auto'; a.volume=0.8; return a;});});
+let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
+const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
+loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips);
 const sfx={}; for(const n of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${n}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
-function sfxDrop(){ if(!dropClips.length) return; let i; do{ i=Math.floor(Math.random()*dropClips.length); }while(i===lastClip&&dropClips.length>1); lastClip=i; const a=dropClips[i].cloneNode(); a.volume=0.8; a.play().catch(()=>{}); }
+function pickPlay(clips,last){ if(!clips.length) return last; let i; do{ i=Math.floor(Math.random()*clips.length); }while(i===last&&clips.length>1); const a=clips[i].cloneNode(); a.volume=0.8; a.play().catch(()=>{}); return i; }
+// first bomb on the grid: a drop line; another bomb while one is already ticking: a multi-bomb line
+function sfxDrop(chained){ if(chained) lastMulti=pickPlay(multiClips,lastMulti); else lastClip=pickPlay(dropClips,lastClip); }
 // grid: 1 = pillar (every other cell, classic bomberman), 0 = floor
 const solid=(cx,cy)=>cx<=0||cy<=0||cx>=COLS-1||cy>=ROWS-1||(cx%2==0&&cy%2==0);
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
