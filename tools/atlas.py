@@ -9,6 +9,7 @@ for d in ('down','up','left','right'):
 for k,n in (('idle',3),('move',3),('hurt',3),('defeated',2),('flicker',10)): names+=[f'candle_{k}_{i}' for i in range(n)]
 names+=[f'bomb_tick_{j}' for j in range(10)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
+names+=['hud_heart_full','hud_heart_half','hud_heart_empty','heroine_dizzy_0','heroine_defeated_0']
 ims=[Image.open(f'{D}/{n}.png') for n in names]
 # shelf packer: frames of mixed sizes, rows of equal height, atlas width 512
 AW=512; meta={'frames':{},'anims':{}}; order=sorted(range(len(ims)),key=lambda i:(-ims[i].height,-ims[i].width))
