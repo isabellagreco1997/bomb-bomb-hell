@@ -13,7 +13,9 @@ def largest_blob(cell_rgba, keep_inside=True):
     """keep the biggest opaque component (+ components inside its bbox), drop stray sparkles"""
     a=cell_rgba[...,3]>40
     lab,n=ndimage.label(ndimage.binary_closing(a,iterations=2))
-    if n<=1: return cell_rgba
+    if n<=1:
+        out=cell_rgba.copy(); filled=ndimage.binary_fill_holes(a); holes=filled&~a
+        out[holes,:3]=cell_rgba[holes,:3]; out[holes,3]=255; return out
     sizes=ndimage.sum(a,lab,range(1,n+1)); big=int(np.argmax(sizes))+1
     sl=ndimage.find_objects(lab)[big-1]
     keep=(lab==big)
@@ -21,6 +23,9 @@ def largest_blob(cell_rgba, keep_inside=True):
         box=np.zeros_like(keep); box[sl]=True
         keep|=(lab>0)&box
     out=cell_rgba.copy(); out[~keep,3]=0
+    # enclosed holes (dark eyes, sockets keyed out because they match the background) get their original pixels back
+    filled=ndimage.binary_fill_holes(keep); holes=filled&~keep
+    out[holes,:3]=cell_rgba[holes,:3]; out[holes,3]=255
     return out
 
 def fit(cell, fw, fh, scale, anchor='bottom', dy=0):

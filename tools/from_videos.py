@@ -16,7 +16,10 @@ def cut(path,band,bg):
     c=largest_blob(key(a,np.array(bg,float),thr=45,soft=30)); al=c[...,3]>0; ys,xs=np.nonzero(al)
     return c[ys.min():ys.max()+1, xs.min():xs.max()+1]
 def head_c(c):
-    al=c[...,3]>0; h=int(al.shape[0]*0.4); ys,xs=np.nonzero(al[:h]); return xs.mean(), ys.mean()
+    """anchor: x = torso centroid (rows 45..80% of the body, the part that must stay put), y = head centroid (stable height)"""
+    al=c[...,3]>0; ys,xs=np.nonzero(al); top,H=ys.min(),ys.max()-ys.min()
+    hy,hx=np.nonzero(al[top:top+int(H*0.4)]); ty,tx=np.nonzero(al[top+int(H*0.45):top+int(H*0.8)])
+    return tx.mean(), top+hy.mean()
 def spread(c):
     al=c[...,3]>0; legs=al[int(al.shape[0]*0.82):]; xs=np.nonzero(legs.any(0))[0]; return xs.max()-xs.min()
 def footdiff(c):
@@ -51,7 +54,7 @@ for d,(folder,band,bg) in VIEWS.items():
     idle_fr=place(idle,scale,hx,hy)
     # idle breath: 4 frames, whole body down 1 px on frames 2-3 (feet stay planted: the 1 px is absorbed visually by the boots)
     bob=Image.new('RGBA',(FW,FH),(0,0,0,0)); bob.paste(idle_fr,(0,1),idle_fr)
-    allframes[d]={'idle':[idle_fr,idle_fr,bob,bob],'walk':walk}
+    allframes[d]={'idle':[idle_fr],'walk':walk}
 json.dump(report,open(f'{W}/vid_report.json','w'),indent=1)
 flat=[f for d in allframes for k in ('idle','walk') for f in allframes[d][k]]
 q,pal=quantise(flat,48); it=iter(q)
