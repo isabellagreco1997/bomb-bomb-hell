@@ -127,10 +127,11 @@ function draw(){
   const cx0=Math.floor(cam.x/T), cy0=Math.floor(cam.y/T);
   for(let cy=cy0;cy<Math.min(WR,cy0+ROWS+1);cy++)for(let cx=cx0;cx<Math.min(WC,cx0+COLS+1);cx++){
     const border=cx<=0||cy<=0||cx>=WC-1||cy>=WR-1; let name;
-    if(border){ const corner=(cx<=0||cx>=WC-1)&&(cy<=0||cy>=WR-1); name=(!corner && hash(cx,cy)%4===0)?['tile_brazier','tile_brazier_1','tile_brazier_2'][Math.floor((worldT+hash(cx,cy))/7)%3]:'tile_wall'; }   // a brazier on every 4th wall tile, flame flickering
+    let sconce=null; if(border){ name='tile_wall'; const corner=(cx<=0||cx>=WC-1)&&(cy<=0||cy>=WR-1); if(!corner && hash(cx,cy)%4===0) sconce=['tile_brazier','tile_brazier_1','tile_brazier_2'][Math.floor((worldT+hash(cx,cy))/7)%3]; }   // wall first, a flickering candelabra layered on every 4th one
     else if(solid(cx,cy)){ name=((worldT+hash(cx,cy))%300<14)?'tile_pillar_glow':'tile_pillar'; }                                                             // the statue's eyes flare for a quarter second every 5 s, out of phase
     else { const ph=Math.floor((worldT/24+hash(cx,cy)%6)%6); name=['tile_floor','tile_floor_1','tile_floor_1','tile_floor','tile_floor_2','tile_floor_2'][ph]; }   // lava veins pulse dim / bright, per tile out of phase
     const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],cx*T,cy*T,T,T);
+    if(sconce){ const s=meta.frames[sconce]; ctx.drawImage(atlas,s[0],s[1],s[2],s[3],cx*T,cy*T,T,T); }
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
   for(const b of bombs) drawBomb(b);

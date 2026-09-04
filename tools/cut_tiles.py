@@ -15,6 +15,10 @@ def tile(name,inset=0.06,keep_bg=True):
     # square crop from the centre, then downscale
     s=min(c.width,c.height); top=(name=='brazier')   # candelabra: keep the flames, crop the top square
     c=c.crop(((c.width-s)//2,0 if top else (c.height-s)//2,(c.width-s)//2+s,(0 if top else (c.height-s)//2)+s))
+    if name=='brazier':   # a prop, not a floor: key the sheet's black background out, fill enclosed holes, keep soft edges
+        arr=np.array(c.convert('RGBA')).astype(float); k=largest_blob(key(arr,np.array([0.,0.,0.]),thr=40,soft=30))
+        c=Image.fromarray(k.astype('uint8'),'RGBA')
+        return c.convert('RGBa').resize((T,T),Image.LANCZOS).convert('RGBA')
     out=c.convert('RGBa').resize((T,T),Image.LANCZOS).convert('RGBA'); a=np.array(out); a[...,3]=255; return Image.fromarray(a,'RGBA')
 tiles={n:tile(n) for n in BOX}
 # animation variants, painted from the tiles' own pixels
