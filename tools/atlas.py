@@ -11,6 +11,7 @@ names+=[f'bomb_tick_{j}' for j in range(10)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
 names+=['hud_heart_full','hud_heart_half','hud_heart_empty','heroine_dizzy_0','heroine_defeated_0']
 NS=json.load(open(f'{D}/heroine_start.json'))['n']; names+=[f'heroine_start_{j}' for j in range(NS)]
+ND=json.load(open(f'{D}/heroine_death.json'))['n']; names+=[f'heroine_death_{j}' for j in range(ND)]
 ims=[Image.open(f'{D}/{n}.png') for n in names]
 # shelf packer: frames of mixed sizes, rows of equal height, atlas width 512
 AW=512; meta={'frames':{},'anims':{}}; order=sorted(range(len(ims)),key=lambda i:(-ims[i].height,-ims[i].width))
@@ -29,6 +30,7 @@ meta['anims']['candle_idle']=['candle_idle_0','candle_idle_1','candle_idle_2','c
 meta['anims']['candle_move']=['candle_move_0','candle_move_1','candle_move_2','candle_move_1']
 meta['anims']['candle_hurt']=['candle_hurt_0','candle_hurt_1','candle_hurt_2']
 meta['anims']['candle_flicker']=[f'candle_flicker_{j}' for j in range(10)]
+meta['anims']['heroine_death']=[f'heroine_death_{j}' for j in range(ND)]
 meta['anims']['heroine_start']=[f'heroine_start_{j}' for j in range(NS)]
 meta['anims']['bomb_tick']=[f'bomb_tick_{j}' for j in range(10)]
 for k in ('h','v','c'): meta['anims'][f'fire_{k}']=[f'fire_{k}_{j}' for j in range(3)]
