@@ -5,7 +5,7 @@ from spritecut import *
 from PIL import Image
 import numpy as np
 A='assets/sprites/48/anim'; W='work'; BODY=56
-FOLDER,NAME=sys.argv[1],sys.argv[2]; N=int(sys.argv[3]); FW,FH=int(sys.argv[4]),int(sys.argv[5])
+FOLDER,NAME=sys.argv[1],sys.argv[2]; N=int(sys.argv[3]); FW,FH=int(sys.argv[4]),int(sys.argv[5]); ANCHOR=sys.argv[6] if len(sys.argv)>6 else 'head'   # head: standing poses; bottom: falls, feet/body on the floor row
 fs=sorted(glob.glob(f'{FOLDER}/f_*.png'))
 a0=np.array(Image.open(fs[0]).convert('RGB')).astype(int); bg=np.median(np.concatenate([a0[:6].reshape(-1,3),a0[-6:].reshape(-1,3),a0[:,:6].reshape(-1,3),a0[:,-6:].reshape(-1,3)]),0); print('bg',bg)
 def cut(p):
@@ -26,7 +26,10 @@ idle=np.array(Image.open(f'{A}/heroine_idle_down_0.png')); hx,hy=anchor(idle); h
 def place(c):
     im=Image.fromarray(c.astype('uint8'),'RGBA'); w=max(1,round(im.width*scale)); h=max(1,round(im.height*scale))
     small=im.convert('RGBa').resize((w,h),Image.LANCZOS).convert('RGBA'); sa=np.array(small); cx,cy=anchor(sa)
-    fr=Image.new('RGBA',(FW,FH),(0,0,0,0)); fr.paste(small,(int(round(hx-cx)),int(round(hy-cy))),small); return fr
+    fr=Image.new('RGBA',(FW,FH),(0,0,0,0))
+    if ANCHOR=='bottom': fr.paste(small,(int(round(hx-cx)),FH-2-small.height),small)     # body's lowest pixel on the floor row, x on the torso
+    else: fr.paste(small,(int(round(hx-cx)),int(round(hy-cy))),small)
+    return fr
 picks=[int(round(i*(len(cells)-1)/(N-1))) for i in range(N)]
 frames=[place(cells[i]) for i in picks]
 q,_=quantise(frames+[Image.fromarray(idle,'RGBA')],48); q=q[:-1]
