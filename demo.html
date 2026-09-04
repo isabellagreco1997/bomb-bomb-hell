@@ -39,8 +39,7 @@ function explode(b){
 }
 function inFire(x,y){ return fires.some(f=>f.cells.some(c=>c[0]===x&&c[1]===y)); }
 function drawFrame(name,x,y){const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],Math.round(x)-((f[2]-T)>>1),Math.round(y)-(f[3]-T),f[2],f[3]);}   // bottom on the tile, centred horizontally
-function step(){
-  if(!meta||!atlas.complete){requestAnimationFrame(step);return}
+function update(){
   // bombs tick (2.5 s), then burst into a cross of fire that lasts 0.7 s
   for(const b of bombs){ b.t++; if(b.t>=150&&!b.dead){ b.dead=true; explode(b);} }
   for(let i=bombs.length-1;i>=0;i--) if(bombs[i].dead) bombs.splice(i,1);
@@ -64,7 +63,8 @@ function step(){
   // candle: wanders left/right, floats
   const ctx_=candle.x*T; if(candleState==='alive') if(Math.abs(candle.px-ctx_)<0.01){const d=candle.dir==='left'?-1:1; if(solid(candle.x+d,candle.y))candle.dir=candle.dir==='left'?'right':'left'; else candle.x+=d;}
   candle.px+=Math.sign(candle.x*T-candle.px)*Math.min(candle.speed,Math.abs(candle.x*T-candle.px)); candle.t++;
-  // draw
+}
+function draw(){
   for(let cy=0;cy<ROWS;cy++)for(let cx=0;cx<COLS;cx++){ctx.fillStyle=solid(cx,cy)?'#2a1a1a':((cx+cy)%2?'#5a0f1e':'#4e0c1a');ctx.fillRect(cx*T,cy*T,T,T);if(solid(cx,cy)){ctx.fillStyle='#c9a24a';ctx.fillRect(cx*T+4,cy*T+4,T-8,3);ctx.fillStyle='#161010';ctx.fillRect(cx*T+4,cy*T+T-6,T-8,3)}}
   for(const b of bombs) drawBomb(b);
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
@@ -74,7 +74,21 @@ function step(){
   else if(candleState==='dying'){ const an=candleT<24?meta.anims.candle_hurt:meta.anims.candle_defeated; drawFrame(an[Math.floor(candleT/8)%an.length],candle.px,candle.py); }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
   if(hurtT===0 || Math.floor(hurtT/4)%2===0) drawFrame(an[Math.floor(hero.t/(hero.moving?4:6))%an.length],hero.px,hero.py);
-  requestAnimationFrame(step);
 }
-step();
+// fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
+const STEP=1000/60; let acc=0, last=performance.now();
+function step(now){
+  if(!meta||!atlas.complete){ last=now||performance.now(); requestAnimationFrame(step); return; }
+  now=now||performance.now(); acc+=Math.min(100,now-last); last=now;
+  let n=0; while(acc>=STEP && n<4){ update(); acc-=STEP; n++; }
+  if(acc>=STEP) acc=0;
+  draw(); requestAnimationFrame(step);
+}
+// --- perf telemetry: every 3 s send fps + step cost + scale to the local server log (GET, shows as a 404 line) ---
+let _fr=0,_stepMs=0,_t0=performance.now(); const _step=step;
+function fpsReport(){ const dt=(performance.now()-_t0)/1000; const fps=(_fr/dt).toFixed(1), ms=(_stepMs/Math.max(1,_fr)).toFixed(2);
+  fetch(`/stat?fps=${fps}&stepms=${ms}&scale=${SCALE}&dpr=${devicePixelRatio}&win=${innerWidth}x${innerHeight}&bombs=${bombs.length}&fires=${fires.length}`).catch(()=>{}); _fr=0;_stepMs=0;_t0=performance.now(); }
+setInterval(fpsReport,3000);
+step=function(now){ const a=performance.now(); _step(now); _stepMs+=performance.now()-a; _fr++; };
+requestAnimationFrame(step);
 </script></body></html>
