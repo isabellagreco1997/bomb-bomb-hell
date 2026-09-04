@@ -56,9 +56,12 @@ window.addEventListener('error',e=>{ const b=document.createElement('div'); b.st
 (function(){ const c=document.getElementById('titlefx'), x=c.getContext('2d'); const ps=[]; let last=performance.now();
   function frame(now){ if(document.getElementById('title').hidden) return; const dt=Math.min(50,now-last); last=now;
     const W=c.width=c.clientWidth, H=c.height=c.clientHeight; x.clearRect(0,0,W,H);
-    if(ps.length<70 && Math.random()<0.6) ps.push({x:Math.random()*W, y:H+10, vy:-(0.25+Math.random()*0.5)*(H/400), vx:(Math.random()-0.5)*0.3, s:1+Math.random()*2.5, life:2500+Math.random()*3000, t:0, ph:Math.random()*6.3});
+    if(ps.length<70 && Math.random()<0.6) ps.push({x:Math.random()*W, y:H+10, vy:-(0.25+Math.random()*0.5)*(H/400), vx:(Math.random()-0.5)*0.3, s:0.6+Math.random()*0.9, life:2500+Math.random()*3000, t:0, ph:Math.random()*6.3});
     for(let i=ps.length-1;i>=0;i--){ const p=ps[i]; p.t+=dt; p.x+=p.vx+Math.sin(p.t/400+p.ph)*0.3; p.y+=p.vy*(dt/16.7); if(p.t>p.life||p.y<-10){ps.splice(i,1);continue;}
-      const a=Math.sin(Math.PI*Math.min(1,p.t/p.life)); x.fillStyle=`rgba(255,${140+Math.floor(a*90)},50,${(0.25+0.6*a).toFixed(2)})`; x.fillRect(Math.round(p.x),Math.round(p.y),Math.round(p.s*W/736),Math.round(p.s*W/736)); }
+      const a=Math.sin(Math.PI*Math.min(1,p.t/p.life)); const k=W/736, r=p.s*k;
+      const gl=x.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6); gl.addColorStop(0,`rgba(255,180,80,${(0.55*a).toFixed(2)})`); gl.addColorStop(0.4,`rgba(255,90,30,${(0.22*a).toFixed(2)})`); gl.addColorStop(1,'rgba(255,60,20,0)');
+      x.fillStyle=gl; x.beginPath(); x.arc(p.x,p.y,r*6,0,6.3); x.fill();                                   // soft glow
+      x.fillStyle=`rgba(255,${210+Math.floor(a*45)},150,${(0.5+0.5*a).toFixed(2)})`; x.beginPath(); x.arc(p.x,p.y,r,0,6.3); x.fill(); }   // tiny hot core
     const vg=x.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35,W/2,H/2,Math.max(W,H)*0.72); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.82)'); x.fillStyle=vg; x.fillRect(0,0,W,H);
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame); })();
