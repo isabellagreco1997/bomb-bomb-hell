@@ -33,7 +33,7 @@ function drawBomb(b){
   octx.globalCompositeOperation='source-atop'; octx.fillStyle='rgba(255,40,40,0.55)'; octx.fillRect(0,0,f[2],f[3]);
   ctx.drawImage(off,0,0,f[2],f[3],x,y,w,h);
 }
-function dropBomb(){ if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(); }
+function dropBomb(){ if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
   for(const [dx,dy,k] of [[1,0,'h'],[-1,0,'h'],[0,1,'v'],[0,-1,'v']]){
