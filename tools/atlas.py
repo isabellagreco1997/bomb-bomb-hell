@@ -10,6 +10,7 @@ for k,n in (('idle',3),('move',3),('hurt',3),('defeated',2),('flicker',10)): nam
 names+=[f'bomb_tick_{j}' for j in range(10)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
 names+=['hud_heart_full','hud_heart_half','hud_heart_empty','heroine_dizzy_0','heroine_defeated_0']
+names+=['tile_floor','tile_pillar','tile_wall','tile_crate_0','tile_crate_0_broken','tile_crate_1','tile_crate_1_broken']
 NS=json.load(open(f'{D}/heroine_start.json'))['n']; names+=[f'heroine_start_{j}' for j in range(NS)]
 ND=json.load(open(f'{D}/heroine_death.json'))['n']; names+=[f'heroine_death_{j}' for j in range(ND)]
 NW=json.load(open(f'{D}/heroine_win.json'))['n']; names+=[f'heroine_win_{j}' for j in range(NW)]

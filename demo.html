@@ -27,11 +27,15 @@ function sfxDrop(chained){ if(chained) lastMulti=pickPlay(multiClips,lastMulti);
 // grid: 1 = pillar (every other cell, classic bomberman), 0 = floor
 const solid=(cx,cy)=>cx<=0||cy<=0||cx>=WC-1||cy>=WR-1||(cx%2==0&&cy%2==0);
 const cam={x:0,y:0};
+let crates=[];   // crates[y][x]: 0 none, 1/2 crate type, negative = breaking (frames left, encoded as -n)
+function genCrates(){ crates=[]; for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++){ let v=0; if(!solid(x,y) && (Math.abs(x-1)+Math.abs(y-1))>3 && Math.random()<0.38) v=1+Math.floor(Math.random()*2); crates[y].push(v);} } }
+genCrates();
+const crateAt=(x,y)=>crates[y]&&crates[y][x]>0;
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
 const candles=[]; const ENEMIES=2;
 function spawnEnemies(){ candles.length=0; const dirs=['left','right','up','down']; let tries=0;
   while(candles.length<ENEMIES && tries++<500){ const x=1+Math.floor(Math.random()*(WC-2)), y=1+Math.floor(Math.random()*(WR-2));
-    if(solid(x,y) || (Math.abs(x-1)+Math.abs(y-1))<8 || candles.some(c=>c.x===x&&c.y===y)) continue;
+    if(solid(x,y) || crateAt(x,y) || (Math.abs(x-1)+Math.abs(y-1))<8 || candles.some(c=>c.x===x&&c.y===y)) continue;
     candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:1.0,hp:2,state:'alive',st:0,flash:0}); } }
 spawnEnemies();
 const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let winT=0; let cleared=false; const RANGE=2;
@@ -57,12 +61,12 @@ function hit(src){
   if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); const g=new Audio('assets/audio/gameover.mp3'); g.volume=0.8; g.play().catch(()=>{}); return; }   // game over sound starts with the dying animation
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
-function resetGame(){ lives=3; deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
+function resetGame(){ genCrates(); lives=3; deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
 function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
   for(const [dx,dy,k] of [[1,0,'h'],[-1,0,'h'],[0,1,'v'],[0,-1,'v']]){
-    for(let r=1;r<=RANGE;r++){ const cx=b.x+dx*r, cy=b.y+dy*r; if(solid(cx,cy)) break; cells.push([cx,cy,k]);
+    for(let r=1;r<=RANGE;r++){ const cx=b.x+dx*r, cy=b.y+dy*r; if(solid(cx,cy)) break; cells.push([cx,cy,k]); if(crateAt(cx,cy)){ crates[cy][cx]=-(crates[cy][cx]*100+30); break; }
       const other=bombs.find(o=>o.x===cx&&o.y===cy&&!o.dead); if(other){other.t=999;} }
   }
   fires.push({cells,t:0}); play('explode',0.9);
@@ -76,6 +80,7 @@ function update(){
     if(b.t>=150&&!b.dead){ b.dead=true; explode(b);} }
   for(let i=bombs.length-1;i>=0;i--) if(bombs[i].dead) bombs.splice(i,1);
   for(const f of fires) f.t++;
+  for(let y=0;y<WR;y++)for(let x=0;x<WC;x++){ const v=crates[y][x]; if(v<0){ const type=Math.floor(-v/100), left=(-v)%100-1; crates[y][x]= left<=0?0:-(type*100+left); } }
   for(let i=fires.length-1;i>=0;i--) if(fires[i].t>42) fires.splice(i,1);
   if(hurtT>0) hurtT--;
   if(deadT===0 && hurtT===0 && inFire(hero.x,hero.y)) { hit('fire'); }
@@ -95,7 +100,7 @@ function update(){
     let want=null;
     if(auto){autoT++; const seq=['right','down','right','down','left','up']; want=seq[Math.floor(autoT/60)%6]; if(autoT%160===20) dropBomb();}
     else if(keys.ArrowLeft)want='left';else if(keys.ArrowRight)want='right';else if(keys.ArrowUp)want='up';else if(keys.ArrowDown)want='down';
-    if(want){hero.dir=want; const d={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[want]; const bx=hero.x+d[0], by=hero.y+d[1]; if(!solid(bx,by) && !bombs.some(b=>b.x===bx&&b.y===by)){hero.x+=d[0];hero.y+=d[1];hero.moving=true; play('step',0.35);}else hero.moving=false}
+    if(want){hero.dir=want; const d={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]}[want]; const bx=hero.x+d[0], by=hero.y+d[1]; if(!solid(bx,by) && !crateAt(bx,by) && !bombs.some(b=>b.x===bx&&b.y===by)){hero.x+=d[0];hero.y+=d[1];hero.moving=true; play('step',0.35);}else hero.moving=false}
     else hero.moving=false;
   }
   const tx=hero.x*T,ty=hero.y*T; hero.px+=Math.sign(tx-hero.px)*Math.min(hero.speed,Math.abs(tx-hero.px)); hero.py+=Math.sign(ty-hero.py)*Math.min(hero.speed,Math.abs(ty-hero.py));
@@ -104,7 +109,7 @@ function update(){
   const DIRS={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]};
   for(const c of candles){ c.t++; if(c.state!=='alive') continue;
     const at=Math.abs(c.px-c.x*T)<0.01&&Math.abs(c.py-c.y*T)<0.01;
-    if(at){ let [dx,dy]=DIRS[c.dir]; const blocked=(x,y)=>solid(x,y)||bombs.some(b=>b.x===x&&b.y===y);
+    if(at){ let [dx,dy]=DIRS[c.dir]; const blocked=(x,y)=>solid(x,y)||crateAt(x,y)||bombs.some(b=>b.x===x&&b.y===y);
       if(blocked(c.x+dx,c.y+dy)||Math.random()<1/6){ const opts=Object.keys(DIRS).filter(k=>!blocked(c.x+DIRS[k][0],c.y+DIRS[k][1])); if(opts.length) c.dir=opts[Math.floor(Math.random()*opts.length)]; [dx,dy]=DIRS[c.dir]; }
       if(!blocked(c.x+dx,c.y+dy)){ c.x+=dx; c.y+=dy; } }
     c.px+=Math.sign(c.x*T-c.px)*Math.min(c.speed,Math.abs(c.x*T-c.px)); c.py+=Math.sign(c.y*T-c.py)*Math.min(c.speed,Math.abs(c.y*T-c.py)); }
@@ -114,7 +119,10 @@ function update(){
 function draw(){
   ctx.setTransform(1,0,0,1,-Math.round(cam.x),HUD-Math.round(cam.y));
   const cx0=Math.floor(cam.x/T), cy0=Math.floor(cam.y/T);
-  for(let cy=cy0;cy<Math.min(WR,cy0+ROWS+1);cy++)for(let cx=cx0;cx<Math.min(WC,cx0+COLS+1);cx++){ctx.fillStyle=solid(cx,cy)?'#2a1a1a':((cx+cy)%2?'#5a0f1e':'#4e0c1a');ctx.fillRect(cx*T,cy*T,T,T);if(solid(cx,cy)){ctx.fillStyle='#c9a24a';ctx.fillRect(cx*T+4,cy*T+4,T-8,3);ctx.fillStyle='#161010';ctx.fillRect(cx*T+4,cy*T+T-6,T-8,3)}}
+  for(let cy=cy0;cy<Math.min(WR,cy0+ROWS+1);cy++)for(let cx=cx0;cx<Math.min(WC,cx0+COLS+1);cx++){
+    const border=cx<=0||cy<=0||cx>=WC-1||cy>=WR-1; const name=border?'tile_wall':(solid(cx,cy)?'tile_pillar':'tile_floor');
+    const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],cx*T,cy*T,T,T);
+    const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const b of bombs) drawBomb(b);
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
     for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
