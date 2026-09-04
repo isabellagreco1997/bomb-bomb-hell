@@ -1,6 +1,14 @@
 <!doctype html><html><head><meta charset="utf-8"><title>bomberman phase 1 demo</title>
 <style>html,body{margin:0;background:#0d0206;height:100%;display:flex;align-items:center;justify-content:center}canvas{image-rendering:pixelated;image-rendering:crisp-edges}</style></head>
-<body><canvas id="c"></canvas>
+<body>
+<div id="title" style="position:fixed;inset:0;background:#0d0206;display:flex;align-items:center;justify-content:center;overflow:hidden">
+  <div id="titlebox" style="position:relative;aspect-ratio:736/400;width:min(100vw,calc(100vh*736/400))">
+    <video id="titlevid" src="assets/video/title.mp4" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated"></video>
+    <!-- the PLAY button sits inside the empty gold frame the video draws at the bottom right -->
+    <button id="play" style="position:absolute;left:52%;top:72.5%;width:43%;height:24%;background:transparent;border:0;cursor:pointer;font:bold min(6vh,5vw) monospace;letter-spacing:6px;color:#f3d9a0;text-shadow:0 0 12px rgba(255,120,60,0.9),0 0 2px #000" onmouseover="this.style.color='#fff2c8'" onmouseout="this.style.color='#f3d9a0'">PLAY</button>
+  </div>
+</div>
+<canvas id="c" hidden></canvas>
 <script>
 const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
@@ -42,8 +50,9 @@ function spawnEnemies(){ candles.length=0; const dirs=['left','right','up','down
 spawnEnemies();
 const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let winT=0; let cleared=false; const RANGE=2;
 const keys={}; let readyAt=0;
+document.getElementById('play').addEventListener('click',()=>{ const t=document.getElementById('title'); t.hidden=true; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } });
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=()=>{ ready=false; music.play().catch(()=>{}); }; intro.play().catch(()=>{ setTimeout(()=>{ready=false; music.play().catch(()=>{});},4900); }); pickPlay(startClips,-1); }
-addEventListener('keydown',e=>{ if(!started){ started=true; beginRound(); e.preventDefault(); return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
+addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 function drawBomb(b){
   const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
@@ -156,12 +165,12 @@ function draw(){
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
 function step(now){
-  if(auto && !started){ started=true; ready=false; }
+  if(auto && !started){ started=true; ready=false; document.getElementById('title').hidden=true; cv.hidden=false; }
   if(!meta||!atlas.complete){ last=now||performance.now(); requestAnimationFrame(step); return; }
   now=now||performance.now(); acc+=Math.min(100,now-last); last=now;
   let n=0; while(acc>=STEP && n<4){ update(); acc-=STEP; n++; }
   if(acc>=STEP) acc=0;
-  draw(); if(!started){ ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,cv.width,cv.height); ctx.fillStyle='#f3d9a0'; ctx.font='bold 16px monospace'; ctx.textAlign='center'; ctx.fillText('PRESS ANY KEY', cv.width/2, cv.height/2); }
+  draw();
   requestAnimationFrame(step);
 }
 // --- perf telemetry: every 3 s send fps + step cost + scale to the local server log (GET, shows as a 404 line) ---
