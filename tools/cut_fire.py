@@ -18,9 +18,15 @@ def tile(name, thick):
     s=thick/(im.height if horizontal else im.width)
     small=im.convert('RGBa').resize((max(1,round(im.width*s)),max(1,round(im.height*s))),Image.LANCZOS).convert('RGBA')
     fr=Image.new('RGBA',(T,T),(0,0,0,0)); fr.paste(small,((T-small.width)//2,(T-small.height)//2),small); return fr
-h=[tile('h0',30),tile('h1',30),tile('h2',30)]
-v=[tile('v0',30),tile('v1',30),tile('v0',30).transpose(Image.FLIP_TOP_BOTTOM)]
-c=[tile('c0',46),tile('c1',46),tile('c0',46).transpose(Image.FLIP_LEFT_RIGHT)]
+# ONE master: the vertical beam strips. Horizontal = the same beam turned 90 degrees, centre = both overlaid (brighter core). One style for the whole cross.
+v=[tile('v0',38),tile('v1',38),tile('v0',38).transpose(Image.FLIP_TOP_BOTTOM)]
+h=[t.transpose(Image.ROTATE_90) for t in v]
+def overlay(a,b):
+    A=np.array(a).astype(int); B=np.array(b).astype(int); out=A.copy()
+    m=B[...,3]>A[...,3]; out[m]=B[m]
+    both=(A[...,3]>128)&(B[...,3]>128); out[both,:3]=np.clip(np.maximum(A[both,:3],B[both,:3])+30,0,255)   # hotter where the beams cross
+    return Image.fromarray(out.astype('uint8'),'RGBA')
+c=[overlay(v[i],h[i]) for i in range(3)]
 allf=h+v+c
 q,pal=quantise(allf,32)
 names=[f'fire_h_{i}' for i in range(3)]+[f'fire_v_{i}' for i in range(3)]+[f'fire_c_{i}' for i in range(3)]

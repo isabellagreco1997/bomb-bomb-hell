@@ -54,7 +54,7 @@ function step(){
   for(let cy=0;cy<ROWS;cy++)for(let cx=0;cx<COLS;cx++){ctx.fillStyle=solid(cx,cy)?'#2a1a1a':((cx+cy)%2?'#5a0f1e':'#4e0c1a');ctx.fillRect(cx*T,cy*T,T,T);if(solid(cx,cy)){ctx.fillStyle='#c9a24a';ctx.fillRect(cx*T+4,cy*T+4,T-8,3);ctx.fillStyle='#161010';ctx.fillRect(cx*T+4,cy*T+T-6,T-8,3)}}
   for(const b of bombs){ const tk=meta.anims.bomb_tick; drawFrame(tk[Math.min(tk.length-1,Math.floor(b.t/150*tk.length))],b.x*T,b.y*T); }
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
-    for(const [cx,cy,k] of f.cells){ if(f.t<10&&k==='c'){ drawFrame(meta.anims.bomb_burst[Math.floor(f.t/2)],cx*T,cy*T); } else drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
+    for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
   const bob=Math.round(Math.sin(candle.t/11)*3);
   if(candleState==='alive') drawFrame(meta.anims.candle_flicker[Math.floor(candle.t/5)%10],candle.px,candle.py+bob);
   else if(candleState==='dying'){ const an=candleT<24?meta.anims.candle_hurt:meta.anims.candle_defeated; drawFrame(an[Math.floor(candleT/8)%an.length],candle.px,candle.py); }
