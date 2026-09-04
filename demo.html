@@ -72,7 +72,7 @@ function showGame(){ const t=document.getElementById('title'); t.hidden=true; t.
 document.getElementById('play').addEventListener('click',()=>{ if(playing) return; playing=true;
   const v=document.getElementById('titlevid'), btn=document.getElementById('play'); btn.style.display='none';
   // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
-  v.loop=false; v.muted=false; v.src='assets/video/press.mp4'; v.currentTime=0;
+  v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; document.getElementById('titlefx').style.display='none';   // silent, and the ember overlay stops with the title loop
   let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition='opacity .35s ease-out'; f.style.opacity='0'; })); };
   v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
