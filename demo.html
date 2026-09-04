@@ -2,7 +2,7 @@
 <style>html,body{margin:0;background:#0d0206;height:100%;display:flex;align-items:center;justify-content:center}canvas{image-rendering:pixelated;image-rendering:crisp-edges}</style></head>
 <body><canvas id="c"></canvas>
 <script>
-const T=48, COLS=13, ROWS=11, WC=29, WR=19, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
+const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
 const off=document.createElement('canvas'); off.width=128; off.height=128; const octx=off.getContext('2d'); octx.imageSmoothingEnabled=false;
@@ -28,16 +28,16 @@ function sfxDrop(chained){ if(chained) lastMulti=pickPlay(multiClips,lastMulti);
 const solid=(cx,cy)=>cx<=0||cy<=0||cx>=WC-1||cy>=WR-1||(cx%2==0&&cy%2==0);
 const cam={x:0,y:0};
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
-const candles=[]; const ENEMIES=6;
+const candles=[]; const ENEMIES=2;
 function spawnEnemies(){ candles.length=0; const dirs=['left','right','up','down']; let tries=0;
   while(candles.length<ENEMIES && tries++<500){ const x=1+Math.floor(Math.random()*(WC-2)), y=1+Math.floor(Math.random()*(WR-2));
     if(solid(x,y) || (Math.abs(x-1)+Math.abs(y-1))<8 || candles.some(c=>c.x===x&&c.y===y)) continue;
     candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:1.0,hp:2,state:'alive',st:0,flash:0}); } }
 spawnEnemies();
-const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; const RANGE=2;
+const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let winT=0; let cleared=false; const RANGE=2;
 const keys={}; let readyAt=0;
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=()=>{ ready=false; music.play().catch(()=>{}); }; intro.play().catch(()=>{ setTimeout(()=>{ready=false; music.play().catch(()=>{});},4900); }); pickPlay(startClips,-1); }
-addEventListener('keydown',e=>{ if(!started){ started=true; beginRound(); e.preventDefault(); return; } if(gameOver){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
+addEventListener('keydown',e=>{ if(!started){ started=true; beginRound(); e.preventDefault(); return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 function drawBomb(b){
   const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
@@ -57,8 +57,8 @@ function hit(src){
   if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); return; }
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
-function resetGame(){ lives=3; deadT=0; gameOver=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
-function dropBomb(){ if(deadT>0||gameOver||ready) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
+function resetGame(){ lives=3; deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
+function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
   for(const [dx,dy,k] of [[1,0,'h'],[-1,0,'h'],[0,1,'v'],[0,-1,'v']]){
@@ -82,6 +82,8 @@ function update(){
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
   if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
+  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead')){ winT=1; music.pause(); pickPlay(startClips,-1); }
+  if(winT>0){ winT++; if(winT>32*6+90) cleared=true; }
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
       if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; } } }
@@ -89,7 +91,7 @@ function update(){
   }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
   const atTile=Math.abs(hero.px-hero.x*T)<0.01&&Math.abs(hero.py-hero.y*T)<0.01;
-  if(atTile && deadT===0 && !gameOver && !ready){
+  if(atTile && deadT===0 && !gameOver && !ready && winT===0){
     let want=null;
     if(auto){autoT++; const seq=['right','down','right','down','left','up']; want=seq[Math.floor(autoT/60)%6]; if(autoT%160===20) dropBomb();}
     else if(keys.ArrowLeft)want='left';else if(keys.ArrowRight)want='right';else if(keys.ArrowUp)want='up';else if(keys.ArrowDown)want='down';
@@ -121,6 +123,7 @@ function draw(){
     else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; drawFrame(an[Math.floor(c.st/8)%an.length],c.px,c.py); } }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
   if(ready){ const an=meta.anims.heroine_start; const k=Math.min(an.length-1,Math.floor((performance.now()-readyAt)/1000*7)); drawFrame(an[k],hero.px,hero.py); }   // start poses at 7 fps, hold the last one
+  else if(winT>0){ const an=meta.anims.heroine_win; drawFrame(an[Math.min(an.length-1,Math.floor(winT/6))],hero.px,hero.py); }   // win poses at 10 fps, hold the last
   else if(deadT>0){ const an=meta.anims.heroine_death; drawFrame(an[Math.min(an.length-1,Math.floor(deadT/7))],hero.px,hero.py); }   // death sequence at ~8.5 fps, hold the collapsed pose
   else if(hurtT===0 || Math.floor(hurtT/4)%2===0) drawFrame(an[Math.floor(hero.t/(hero.moving?4:6))%an.length],hero.px,hero.py);
   // HUD: Bomberman-style top bar, hearts at the left
@@ -128,6 +131,7 @@ function draw(){
   ctx.fillStyle='#1a0a0e'; ctx.fillRect(0,0,cv.width,HUD); ctx.fillStyle='#c9a24a'; ctx.fillRect(0,HUD-3,cv.width,2); ctx.fillRect(0,0,cv.width,1);
   for(let i=0;i<3;i++){ const f=meta.frames[i<lives?'hud_heart_full':'hud_heart_empty']; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],12+i*28,8,f[2],f[3]); }
   if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 22px monospace'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
+  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('PHASE 1 CLEAR', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
   if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
 }
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
