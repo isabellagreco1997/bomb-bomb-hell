@@ -19,7 +19,7 @@ function drawBomb(b){
   const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
   const left=FUSE-b.t;
   // pulse like the original: the sphere swells and shrinks, faster as the fuse runs out
-  const period=left>60?24:(left>30?12:6); const s=1+(Math.floor(b.t/(period/2))%2)*0.12;
+  const period=left>60?24:(left>30?12:6); const s=1-(Math.floor(b.t/(period/2))%2)*0.12;   // current size is the maximum; it pulses down from it
   const w=Math.round(f[2]*s), h=Math.round(f[3]*s);
   const x=Math.round(b.x*T+T/2-w/2), y=Math.round(b.y*T+T-h+ (h-f[3])/2);
   const flash=left<=36 && Math.floor(left/4)%2===0;      // red flashes in the last 0.6 s

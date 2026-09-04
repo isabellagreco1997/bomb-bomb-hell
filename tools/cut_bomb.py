@@ -43,7 +43,7 @@ def rim(im):
     reds=a[al & (a[...,0]>120) & (a[...,1]<80) & (a[...,2]<80)][:,:3]; col=np.median(reds,0).astype('uint8') if len(reds) else np.array([150,30,30],'uint8')
     ring=ndimage.binary_dilation(al,iterations=1)&~al
     out=a.copy(); out[ring,:3]=col; out[ring,3]=255; return Image.fromarray(out,'RGBA')
-q=[rim(f) for f in q]
+# (no rim: she wants the sprite as drawn)
 for p in glob.glob(f'{A}/bomb_tick_*.png'): os.remove(p)
 for j,f in enumerate(q): f.save(f'{A}/bomb_tick_{j}.png')
 sheet(q,10,2,bg=(78,12,26,255)).save(f'{W}/strip_bomb96.png'); print('bomb frames',len(q))
