@@ -11,7 +11,7 @@ let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
-loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips);
+let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips);
 const sfx={}; for(const n of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${n}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
 function pickPlay(clips,last){ if(!clips.length) return last; let i; do{ i=Math.floor(Math.random()*clips.length); }while(i===last&&clips.length>1); const a=clips[i].cloneNode(); a.volume=0.8; a.play().catch(()=>{}); return i; }
@@ -58,7 +58,7 @@ function update(){
   for(let i=fires.length-1;i>=0;i--) if(fires[i].t>42) fires.splice(i,1);
   if(hurtT>0) hurtT--;
   if(hurtT===0 && inFire(hero.x,hero.y)) { hurtT=90; }
-  if(candleState==='alive' && inFire(candle.x,candle.y)) { candleState='dying'; candleT=0; }
+  if(candleState==='alive' && inFire(candle.x,candle.y)) { candleState='dying'; candleT=0; lastKill=pickPlay(killClips,lastKill); }
   if(candleState==='dying') { candleT++; if(candleT>60) { candleState='dead'; } }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
   const atTile=Math.abs(hero.px-hero.x*T)<0.01&&Math.abs(hero.py-hero.y*T)<0.01;
