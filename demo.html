@@ -10,6 +10,9 @@
   </div>
 </div>
 <canvas id="c" hidden></canvas>
+<!-- theatre curtains: two velvet panels from the tiles sheet, slide in over everything and part again -->
+<div id="curtL" style="position:fixed;top:0;left:0;height:100vh;width:52vw;background:url(assets/ui/curtain.png) repeat-x left top/auto 100%;image-rendering:pixelated;transform:translateX(-105%);transition:transform .75s cubic-bezier(.6,0,.4,1);z-index:20;pointer-events:none;box-shadow:12px 0 24px rgba(0,0,0,.6)"></div>
+<div id="curtR" style="position:fixed;top:0;right:0;height:100vh;width:52vw;background:url(assets/ui/curtain.png) repeat-x left top/auto 100%;image-rendering:pixelated;transform:scaleX(-1) translateX(-105%);transition:transform .75s cubic-bezier(.6,0,.4,1);z-index:20;pointer-events:none;box-shadow:12px 0 24px rgba(0,0,0,.6)"></div>
 <script>
 const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
@@ -66,7 +69,13 @@ window.addEventListener('error',e=>{ const b=document.createElement('div'); b.st
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame); })();
 document.addEventListener('click',()=>{ window._clicks=(window._clicks||0)+1; }, true);
-document.getElementById('play').addEventListener('click',()=>{ const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } });
+function curtains(closeFn){ const L=document.getElementById('curtL'), R=document.getElementById('curtR');
+  L.style.transform='translateX(0)'; R.style.transform='scaleX(-1) translateX(0)';                       // close
+  setTimeout(()=>{ closeFn(); setTimeout(()=>{ L.style.transform='translateX(-105%)'; R.style.transform='scaleX(-1) translateX(-105%)'; },350); },800);   // swap behind them, then open
+}
+let playing=false;
+document.getElementById('play').addEventListener('click',()=>{ if(playing) return; playing=true;
+  curtains(()=>{ const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } }); });
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
