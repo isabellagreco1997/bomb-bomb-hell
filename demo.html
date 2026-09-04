@@ -4,8 +4,9 @@
 <div id="title" style="position:fixed;inset:0;background:#0d0206;display:flex;align-items:center;justify-content:center;overflow:hidden">
   <div id="titlebox" style="position:relative;aspect-ratio:736/400;width:min(100vw,calc(100vh*736/400))">
     <video id="titlevid" src="assets/video/title.mp4" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated"></video>
+    <canvas id="titlefx" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
     <!-- the PLAY button sits inside the empty gold frame the video draws at the bottom right -->
-    <button id="play" style="position:absolute;left:52%;top:72.5%;width:43%;height:24%;background:transparent;border:0;cursor:pointer;font:bold min(6vh,5vw) monospace;letter-spacing:6px;color:#f3d9a0;text-shadow:0 0 12px rgba(255,120,60,0.9),0 0 2px #000" onmouseover="this.style.color='#fff2c8'" onmouseout="this.style.color='#f3d9a0'">PLAY</button>
+    <button id="play" style="position:absolute;left:48.5%;top:75.5%;width:45.4%;height:23.5%;background:transparent;border:0;cursor:pointer;font:bold min(6vh,5vw) monospace;letter-spacing:6px;color:#f3d9a0;text-shadow:0 0 12px rgba(255,120,60,0.9),0 0 2px #000" onmouseover="this.style.color='#fff2c8'" onmouseout="this.style.color='#f3d9a0'">PLAY</button>
   </div>
 </div>
 <canvas id="c" hidden></canvas>
@@ -14,8 +15,8 @@ const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
 const off=document.createElement('canvas'); off.width=128; off.height=128; const octx=off.getContext('2d'); octx.imageSmoothingEnabled=false;
-const atlas=new Image(); atlas.src='assets/atlas.png';
-let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
+const V=Date.now(); const atlas=new Image(); atlas.src='assets/atlas.png?v='+V;
+let meta=null; fetch('assets/atlas.json?v='+V).then(r=>r.json()).then(m=>meta=m);
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
@@ -49,9 +50,21 @@ function spawnEnemies(){ candles.length=0; const dirs=['left','right','up','down
     candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:1.0,hp:2,state:'alive',st:0,flash:0}); } }
 spawnEnemies();
 const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let winT=0; let cleared=false; const RANGE=2;
-const keys={}; let readyAt=0;
+const keys={};
+window.addEventListener('error',e=>{ const b=document.createElement('div'); b.style.cssText='position:fixed;left:8px;bottom:8px;z-index:9;background:#400;color:#fdd;font:12px monospace;padding:6px 10px;max-width:90vw'; b.textContent='error: '+e.message+' @'+e.lineno; document.body.appendChild(b); }); let readyAt=0;
+// title overlay: vignette + floating embers, drawn on a canvas over the looping video
+(function(){ const c=document.getElementById('titlefx'), x=c.getContext('2d'); const ps=[]; let last=performance.now();
+  function frame(now){ if(document.getElementById('title').hidden) return; const dt=Math.min(50,now-last); last=now;
+    const W=c.width=c.clientWidth, H=c.height=c.clientHeight; x.clearRect(0,0,W,H);
+    if(ps.length<70 && Math.random()<0.6) ps.push({x:Math.random()*W, y:H+10, vy:-(0.25+Math.random()*0.5)*(H/400), vx:(Math.random()-0.5)*0.3, s:1+Math.random()*2.5, life:2500+Math.random()*3000, t:0, ph:Math.random()*6.3});
+    for(let i=ps.length-1;i>=0;i--){ const p=ps[i]; p.t+=dt; p.x+=p.vx+Math.sin(p.t/400+p.ph)*0.3; p.y+=p.vy*(dt/16.7); if(p.t>p.life||p.y<-10){ps.splice(i,1);continue;}
+      const a=Math.sin(Math.PI*Math.min(1,p.t/p.life)); x.fillStyle=`rgba(255,${140+Math.floor(a*90)},50,${(0.25+0.6*a).toFixed(2)})`; x.fillRect(Math.round(p.x),Math.round(p.y),Math.round(p.s*W/736),Math.round(p.s*W/736)); }
+    const vg=x.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35,W/2,H/2,Math.max(W,H)*0.72); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.82)'); x.fillStyle=vg; x.fillRect(0,0,W,H);
+    requestAnimationFrame(frame); }
+  requestAnimationFrame(frame); })();
 document.getElementById('play').addEventListener('click',()=>{ const t=document.getElementById('title'); t.hidden=true; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } });
-function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=()=>{ ready=false; music.play().catch(()=>{}); }; intro.play().catch(()=>{ setTimeout(()=>{ready=false; music.play().catch(()=>{});},4900); }); pickPlay(startClips,-1); }
+function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
+function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 function drawBomb(b){
