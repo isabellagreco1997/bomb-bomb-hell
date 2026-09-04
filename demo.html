@@ -10,7 +10,7 @@
   </div>
 </div>
 <canvas id="c" hidden></canvas>
-<div id="flash" style="position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:30;transition:opacity .35s ease-out"></div>
+<div id="flash" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30;transition:opacity .9s ease-out"></div>
 <script>
 const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
@@ -73,7 +73,7 @@ document.getElementById('play').addEventListener('click',()=>{ if(playing) retur
   const v=document.getElementById('titlevid'), btn=document.getElementById('play'); btn.style.display='none';
   // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
   v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; document.getElementById('titlefx').style.display='none';   // silent, and the ember overlay stops with the title loop
-  let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition='opacity .35s ease-out'; f.style.opacity='0'; })); };
+  let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); setTimeout(()=>{ f.style.transition='opacity .9s ease-out'; f.style.opacity='0'; },120); };   // black, then the game fades in over 0.9 s
   v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
