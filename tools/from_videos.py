@@ -9,6 +9,7 @@ import numpy as np
 A='assets/sprites/48/anim'; W='work'; FW,FH=48,60; BODY=56
 meta=json.load(open('work/vid_meta.json')); bands=meta['bands']
 mids=[(bands[0][1]+bands[1][0])//2,(bands[1][1]+bands[2][0])//2]
+HEAD_LOCK={'up'}
 VIEWS={'down':('work/vid_front',None,meta['front_bg']),'up':('work/vid_stack',(mids[0],mids[1]),meta['stack_bg']),'left':('work/vid_stack',(mids[1],992),meta['stack_bg'])}
 def cut(path,band,bg):
     a=np.array(Image.open(path).convert('RGBA'))
@@ -52,6 +53,14 @@ for d,(folder,band,bg) in VIEWS.items():
     print(d,'idle h',idle.shape[0],'scale',round(scale,3),'step period',P,'frames',picks)
     walk=[place(cells[i],scale,hx,hy) for i in picks]
     idle_fr=place(idle,scale,hx,hy)
+    if d in HEAD_LOCK:
+        # the video rocks her head ±15 px; lock head + hair from the standing frame, keep the video's arms and legs
+        ia=np.array(idle_fr); al=ia[...,3]>0; w=[(np.nonzero(r)[0].max()-np.nonzero(r)[0].min()) if r.any() else 999 for r in al]
+        lo,hi=int(FH*0.40),int(FH*0.62); nk=lo+int(np.argmin(w[lo:hi])); print(d,'head lock, neck row',nk)
+        locked=[]
+        for f in walk:
+            a=np.array(f); a[:nk]=ia[:nk]; locked.append(Image.fromarray(a,'RGBA'))
+        walk=locked
     # idle breath: 4 frames, whole body down 1 px on frames 2-3 (feet stay planted: the 1 px is absorbed visually by the boots)
     bob=Image.new('RGBA',(FW,FH),(0,0,0,0)); bob.paste(idle_fr,(0,1),idle_fr)
     allframes[d]={'idle':[idle_fr],'walk':walk}
