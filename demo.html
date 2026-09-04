@@ -10,9 +10,7 @@
   </div>
 </div>
 <canvas id="c" hidden></canvas>
-<!-- theatre curtains: two velvet panels from the tiles sheet, slide in over everything and part again -->
-<div id="curtL" style="position:fixed;top:0;left:0;height:100vh;width:52vw;background:url(assets/ui/curtain.png) repeat-x left top/auto 100%;image-rendering:pixelated;transform:translateX(-105%);transition:transform .75s cubic-bezier(.6,0,.4,1);z-index:20;pointer-events:none;box-shadow:12px 0 24px rgba(0,0,0,.6)"></div>
-<div id="curtR" style="position:fixed;top:0;right:0;height:100vh;width:52vw;background:url(assets/ui/curtain.png) repeat-x left top/auto 100%;image-rendering:pixelated;transform:scaleX(-1) translateX(-105%);transition:transform .75s cubic-bezier(.6,0,.4,1);z-index:20;pointer-events:none;box-shadow:12px 0 24px rgba(0,0,0,.6)"></div>
+<div id="flash" style="position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:30;transition:opacity .35s ease-out"></div>
 <script>
 const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
@@ -69,13 +67,14 @@ window.addEventListener('error',e=>{ const b=document.createElement('div'); b.st
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame); })();
 document.addEventListener('click',()=>{ window._clicks=(window._clicks||0)+1; }, true);
-function curtains(closeFn){ const L=document.getElementById('curtL'), R=document.getElementById('curtR');
-  L.style.transform='translateX(0)'; R.style.transform='scaleX(-1) translateX(0)';                       // close
-  setTimeout(()=>{ closeFn(); setTimeout(()=>{ L.style.transform='translateX(-105%)'; R.style.transform='scaleX(-1) translateX(-105%)'; },350); },800);   // swap behind them, then open
-}
 let playing=false;
+function showGame(){ const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; cv.hidden=false; if(!started){ started=true; beginRound(); } }
 document.getElementById('play').addEventListener('click',()=>{ if(playing) return; playing=true;
-  curtains(()=>{ const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } }); });
+  const v=document.getElementById('titlevid'), btn=document.getElementById('play'); btn.style.display='none';
+  // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
+  v.loop=false; v.muted=false; v.src='assets/video/press.mp4'; v.currentTime=0;
+  let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition='opacity .35s ease-out'; f.style.opacity='0'; })); };
+  v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
