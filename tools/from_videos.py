@@ -53,7 +53,12 @@ for d,(folder,band,bg) in VIEWS.items():
             p=pad(c)
             if np.abs(p-last).mean()>1.5: cells.append(c); last=p
         print(d,'held-frame dedupe:',len(raw),'->',len(cells),'unique frames')
-        wscale=BODY/max(c.shape[0] for c in cells)       # tallest frame = feet flat = standing height
+        # the walk video never has both feet flat, so height under-reports her size: match scale by HAIR WIDTH against the idle instead
+        def hair_w(c):
+            r,g,b,al=[c[...,i] for i in range(4)]; m=(al>0)&(r>170)&(g>90)&(g<185)&(b>90)&(b<175)&(r-g>35)&(r-b>25)
+            ys,xs=np.nonzero(m); return xs.max()-xs.min()
+        wscale=scale*hair_w(idle)/np.median([hair_w(c) for c in cells])
+        print(d,'scale by hair width: idle',round(scale,4),'walk',round(wscale,4))
         print(d,'walk source override:',len(cells),'frames, standing height',max(c.shape[0] for c in cells))
     # idle placement: feet on row 58 (1 px margin), centred; record its head position
     im=Image.fromarray(idle.astype('uint8'),'RGBA').convert('RGBa').resize((round(idle.shape[1]*scale),BODY),Image.LANCZOS).convert('RGBA')
