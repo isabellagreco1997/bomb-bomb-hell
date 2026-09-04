@@ -43,7 +43,15 @@ for d,(folder,band,bg) in VIEWS.items():
     idle=cells[0]; scale=BODY/idle.shape[0]; wscale=scale
     if d in WALK_SRC:
         wf,wb,wbg,w0=WALK_SRC[d]; wfs=sorted(glob.glob(f'{wf}/f_*.png'))[w0:]
-        cells=[cut(f,wb,wbg) for f in wfs]
+        raw=[cut(f,wb,wbg) for f in wfs]
+        # held-frame video: keep only frames that differ from the previous kept one (mean abs diff of the padded cut > threshold)
+        def pad(c,H=260,Wd=200):
+            o=np.zeros((H,Wd,4)); h,w=c.shape[:2]; o[H-h:, (Wd-w)//2:(Wd-w)//2+w]=c[:H,:Wd]; return o
+        cells=[raw[0]]; last=pad(raw[0])
+        for c in raw[1:]:
+            p=pad(c)
+            if np.abs(p-last).mean()>1.5: cells.append(c); last=p
+        print(d,'held-frame dedupe:',len(raw),'->',len(cells),'unique frames')
         wscale=BODY/max(c.shape[0] for c in cells)       # tallest frame = feet flat = standing height
         print(d,'walk source override:',len(cells),'frames, standing height',max(c.shape[0] for c in cells))
     # idle placement: feet on row 58 (1 px margin), centred; record its head position
@@ -54,8 +62,8 @@ for d,(folder,band,bg) in VIEWS.items():
         P=int(np.argmax(ac[5:20]))+6; cyc=2*P                             # spread peaks once per step: full cycle 2P
     else:
         sp=np.array([footdiff(c) for c in cells],float); s=sp-sp.mean(); ac=[np.dot(s[:-k],s[k:])/np.dot(s,s) for k in range(1,80)]
-        P=int(np.argmax(ac[9:40]))+10; cyc=P                               # foot difference cycles once per full walk
-    s0=12 if d not in WALK_SRC else 2
+        hi=min(40,len(s)//2); P=int(np.argmax(ac[9:hi]))+10; cyc=P                 # foot difference cycles once per full walk
+    s0=12 if d not in WALK_SRC else 0
     start=s0+int(np.argmax(sp[s0:s0+cyc])); picks=[start+round(k*cyc/8) for k in range(8)]
     report[d]=dict(idle_h=int(idle.shape[0]),scale=round(scale,4),step_period=P,picks=picks,spread=[int(v) for v in sp[:60]])
     print(d,'idle h',idle.shape[0],'scale',round(scale,3),'step period',P,'frames',picks)
