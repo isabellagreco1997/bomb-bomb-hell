@@ -22,7 +22,7 @@ const solid=(cx,cy)=>cx<=0||cy<=0||cx>=COLS-1||cy>=ROWS-1||(cx%2==0&&cy%2==0);
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
 const candle={x:11,y:9,px:11*T,py:9*T,dir:'left',t:0,speed:1.0};
 const bombs=[]; const fires=[]; let hurtT=0; let candleState='alive'; let candleT=0; const RANGE=2;
-const keys={}; addEventListener('keydown',e=>{ if(!started){ started=true; pickPlay(startClips,-1); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()});   // first key = game start + a random start line (browsers need a gesture before sound) addEventListener('keyup',e=>keys[e.key]=0);
+const keys={}; addEventListener('keydown',e=>{ if(!started){ started=true; pickPlay(startClips,-1); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 function drawBomb(b){
   const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
