@@ -12,6 +12,9 @@ let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
 let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/enemyhurt.json',enemyHurtClips); loadClips('assets/audio/death.json',deathClips);
+const intro=new Audio('assets/audio/intro.mp3'); intro.preload='auto'; intro.volume=0.9;
+const music=new Audio('assets/audio/music.mp3'); music.preload='auto'; music.loop=true; music.volume=0.45;
+let ready=false;   // true between the first key press and the end of the intro jingle: 'READY?' on screen, no movement
 const sfx={}; for(const n of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${n}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
 let currentVoice=null;
@@ -26,7 +29,8 @@ const solid=(cx,cy)=>cx<=0||cy<=0||cx>=COLS-1||cy>=ROWS-1||(cx%2==0&&cy%2==0);
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
 const candle={x:11,y:9,px:11*T,py:9*T,dir:'left',t:0,speed:1.0};
 const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let candleState='alive'; let candleT=0; const RANGE=2;
-const keys={}; addEventListener('keydown',e=>{ if(!started){ started=true; pickPlay(startClips,-1); e.preventDefault(); return; } if(gameOver){ resetGame(); pickPlay(startClips,-1); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
+const keys={}; function beginRound(){ ready=true; music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=()=>{ ready=false; music.play().catch(()=>{}); }; intro.play().catch(()=>{ setTimeout(()=>{ready=false; music.play().catch(()=>{});},4900); }); pickPlay(startClips,-1); }
+addEventListener('keydown',e=>{ if(!started){ started=true; beginRound(); e.preventDefault(); return; } if(gameOver){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 function drawBomb(b){
   const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
@@ -43,11 +47,11 @@ function drawBomb(b){
 }
 function hit(src){
   lives--; hurtT=90;
-  if(lives<=0){ deadT=1; hurtT=0; pickPlay(deathClips,-1); return; }
+  if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); return; }
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
 function resetGame(){ lives=3; deadT=0; gameOver=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; candle.x=11;candle.y=9;candle.px=11*T;candle.py=9*T;candleState='alive'; }
-function dropBomb(){ if(deadT>0||gameOver) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
+function dropBomb(){ if(deadT>0||gameOver||ready) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
   for(const [dx,dy,k] of [[1,0,'h'],[-1,0,'h'],[0,1,'v'],[0,-1,'v']]){
@@ -75,7 +79,7 @@ function update(){
   if(candleState==='dying') { candleT++; if(candleT>60) { candleState='dead'; } }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
   const atTile=Math.abs(hero.px-hero.x*T)<0.01&&Math.abs(hero.py-hero.y*T)<0.01;
-  if(atTile && deadT===0 && !gameOver){
+  if(atTile && deadT===0 && !gameOver && !ready){
     let want=null;
     if(auto){autoT++; const seq=['right','down','left','up']; want=seq[Math.floor(autoT/40)%4]; if(autoT%160===20) dropBomb();}
     else if(keys.ArrowLeft)want='left';else if(keys.ArrowRight)want='right';else if(keys.ArrowUp)want='up';else if(keys.ArrowDown)want='down';
@@ -104,12 +108,13 @@ function draw(){
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle='#1a0a0e'; ctx.fillRect(0,0,cv.width,HUD); ctx.fillStyle='#c9a24a'; ctx.fillRect(0,HUD-3,cv.width,2); ctx.fillRect(0,0,cv.width,1);
   for(let i=0;i<3;i++){ const f=meta.frames[i<lives?'hud_heart_full':'hud_heart_empty']; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],12+i*28,8,f[2],f[3]); }
+  if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 22px monospace'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
   if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
 }
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
 function step(now){
-  if(auto && !started) started=true;
+  if(auto && !started){ started=true; ready=false; }
   if(!meta||!atlas.complete){ last=now||performance.now(); requestAnimationFrame(step); return; }
   now=now||performance.now(); acc+=Math.min(100,now-last); last=now;
   let n=0; while(acc>=STEP && n<4){ update(); acc-=STEP; n++; }
