@@ -10,6 +10,8 @@ A='assets/sprites/48/anim'; W='work'; FW,FH=48,60; BODY=56
 meta=json.load(open('work/vid_meta.json')); bands=meta['bands']
 mids=[(bands[0][1]+bands[1][0])//2,(bands[1][1]+bands[2][0])//2]
 HEAD_LOCK={'up'}
+TONE_MATCH={'up'}   # walk body tones remapped onto the standing frame's tones (older video = older outfit colours)
+WALK_SRC={'up':('work/vid_back',None,[37.,2.,10.],90)}   # view: (folder, band, bg, first usable frame)
 VIEWS={'down':('work/vid_front',None,meta['front_bg']),'up':('work/vid_stack',(mids[0],mids[1]),meta['stack_bg']),'left':('work/vid_stack',(mids[1],992),meta['stack_bg'])}
 def cut(path,band,bg):
     a=np.array(Image.open(path).convert('RGBA'))
@@ -38,7 +40,12 @@ allframes={}; report={}
 for d,(folder,band,bg) in VIEWS.items():
     fs=sorted(glob.glob(f'{folder}/f_*.png'))
     cells=[cut(f,band,bg) for f in fs]
-    idle=cells[0]; scale=BODY/idle.shape[0]
+    idle=cells[0]; scale=BODY/idle.shape[0]; wscale=scale
+    if d in WALK_SRC:
+        wf,wb,wbg,w0=WALK_SRC[d]; wfs=sorted(glob.glob(f'{wf}/f_*.png'))[w0:]
+        cells=[cut(f,wb,wbg) for f in wfs]
+        wscale=BODY/max(c.shape[0] for c in cells)       # tallest frame = feet flat = standing height
+        print(d,'walk source override:',len(cells),'frames, standing height',max(c.shape[0] for c in cells))
     # idle placement: feet on row 58 (1 px margin), centred; record its head position
     im=Image.fromarray(idle.astype('uint8'),'RGBA').convert('RGBa').resize((round(idle.shape[1]*scale),BODY),Image.LANCZOS).convert('RGBA')
     ia=np.array(im); cx,cy=head_c(ia); x0=(FW-im.width)//2; y0=FH-2-BODY; hx,hy=x0+cx,y0+cy
@@ -48,10 +55,11 @@ for d,(folder,band,bg) in VIEWS.items():
     else:
         sp=np.array([footdiff(c) for c in cells],float); s=sp-sp.mean(); ac=[np.dot(s[:-k],s[k:])/np.dot(s,s) for k in range(1,80)]
         P=int(np.argmax(ac[9:40]))+10; cyc=P                               # foot difference cycles once per full walk
-    start=12+int(np.argmax(sp[12:12+cyc])); picks=[start+round(k*cyc/8) for k in range(8)]
+    s0=12 if d not in WALK_SRC else 2
+    start=s0+int(np.argmax(sp[s0:s0+cyc])); picks=[start+round(k*cyc/8) for k in range(8)]
     report[d]=dict(idle_h=int(idle.shape[0]),scale=round(scale,4),step_period=P,picks=picks,spread=[int(v) for v in sp[:60]])
     print(d,'idle h',idle.shape[0],'scale',round(scale,3),'step period',P,'frames',picks)
-    walk=[place(cells[i],scale,hx,hy) for i in picks]
+    walk=[place(cells[i],wscale,hx,hy) for i in picks]
     idle_fr=place(idle,scale,hx,hy)
     if d in HEAD_LOCK:
         # the video rocks her head ±15 px; lock head + hair from the standing frame, keep the video's arms and legs
@@ -61,6 +69,18 @@ for d,(folder,band,bg) in VIEWS.items():
         for f in walk:
             a=np.array(f); a[:nk]=ia[:nk]; locked.append(Image.fromarray(a,'RGBA'))
         walk=locked
+    if d in TONE_MATCH:
+        ia=np.array(idle_fr)
+        def tones(blk):
+            px=blk[blk[...,3]>0][:,:3]; u=np.unique(px,axis=0); return u[np.argsort(u.sum(1))]
+        def remap(blk,src_t,dst_t):
+            o=blk.copy(); m=blk[...,3]>0; px=blk[m][:,:3]
+            idx=np.array([np.where((src_t==p).all(1))[0][0] for p in px]); q=(idx/(max(1,len(src_t)-1))*(len(dst_t)-1)).round().astype(int)
+            o[m,:3]=dst_t[q]; return o
+        nk2=int(FH*0.52); dst=tones(ia[nk2:]); matched=[]
+        for f in walk:
+            a=np.array(f); body=a[nk2:].copy(); a[nk2:]=remap(body,tones(body),dst); matched.append(Image.fromarray(a,'RGBA'))
+        walk=matched
     # idle breath: 4 frames, whole body down 1 px on frames 2-3 (feet stay planted: the 1 px is absorbed visually by the boots)
     bob=Image.new('RGBA',(FW,FH),(0,0,0,0)); bob.paste(idle_fr,(0,1),idle_fr)
     allframes[d]={'idle':[idle_fr],'walk':walk}
