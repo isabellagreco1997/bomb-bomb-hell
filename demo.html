@@ -81,7 +81,7 @@ function update(){
   if(deadT===0 && hurtT===0 && inFire(hero.x,hero.y)) { hit('fire'); }
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
-  if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
+  if(deadT>0){ deadT++; if(deadT>24*7+60 && !gameOver){ gameOver=true; const g=new Audio('assets/audio/gameover.mp3'); g.volume=0.8; g.play().catch(()=>{}); } }   // game over sting when the overlay appears
   if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead')){ winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
   if(winT>0){ winT++; if(winT>32*6+90) cleared=true; }
   for(const c of candles){
