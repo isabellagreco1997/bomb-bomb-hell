@@ -966,75 +966,267 @@
    48,
    60
   ],
-  "fire_h_0": [
+  "heroine_start_0": [
    144,
    1092,
+   48,
+   60
+  ],
+  "heroine_start_1": [
+   192,
+   1092,
+   48,
+   60
+  ],
+  "heroine_start_2": [
+   240,
+   1092,
+   48,
+   60
+  ],
+  "heroine_start_3": [
+   288,
+   1092,
+   48,
+   60
+  ],
+  "heroine_start_4": [
+   336,
+   1092,
+   48,
+   60
+  ],
+  "heroine_start_5": [
+   384,
+   1092,
+   48,
+   60
+  ],
+  "heroine_start_6": [
+   432,
+   1092,
+   48,
+   60
+  ],
+  "heroine_start_7": [
+   0,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_8": [
+   48,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_9": [
+   96,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_10": [
+   144,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_11": [
+   192,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_12": [
+   240,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_13": [
+   288,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_14": [
+   336,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_15": [
+   384,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_16": [
+   432,
+   1152,
+   48,
+   60
+  ],
+  "heroine_start_17": [
+   0,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_18": [
+   48,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_19": [
+   96,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_20": [
+   144,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_21": [
+   192,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_22": [
+   240,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_23": [
+   288,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_24": [
+   336,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_25": [
+   384,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_26": [
+   432,
+   1212,
+   48,
+   60
+  ],
+  "heroine_start_27": [
+   0,
+   1272,
+   48,
+   60
+  ],
+  "heroine_start_28": [
+   48,
+   1272,
+   48,
+   60
+  ],
+  "heroine_start_29": [
+   96,
+   1272,
+   48,
+   60
+  ],
+  "heroine_start_30": [
+   144,
+   1272,
+   48,
+   60
+  ],
+  "heroine_start_31": [
+   192,
+   1272,
+   48,
+   60
+  ],
+  "fire_h_0": [
+   240,
+   1272,
    48,
    48
   ],
   "fire_h_1": [
-   192,
-   1092,
+   288,
+   1272,
    48,
    48
   ],
   "fire_h_2": [
-   240,
-   1092,
+   336,
+   1272,
    48,
    48
   ],
   "fire_v_0": [
-   288,
-   1092,
+   384,
+   1272,
    48,
    48
   ],
   "fire_v_1": [
-   336,
-   1092,
+   432,
+   1272,
    48,
    48
   ],
   "fire_v_2": [
-   384,
-   1092,
+   0,
+   1332,
    48,
    48
   ],
   "fire_c_0": [
-   432,
-   1092,
+   48,
+   1332,
    48,
    48
   ],
   "fire_c_1": [
-   0,
-   1152,
+   96,
+   1332,
    48,
    48
   ],
   "fire_c_2": [
-   48,
-   1152,
+   144,
+   1332,
    48,
    48
   ],
   "hud_heart_full": [
-   96,
-   1152,
+   192,
+   1332,
    24,
    24
   ],
   "hud_heart_half": [
-   120,
-   1152,
+   216,
+   1332,
    24,
    24
   ],
   "hud_heart_empty": [
-   144,
-   1152,
+   240,
+   1332,
    24,
    24
   ]
@@ -1212,6 +1404,40 @@
    "candle_flicker_7",
    "candle_flicker_8",
    "candle_flicker_9"
+  ],
+  "heroine_start": [
+   "heroine_start_0",
+   "heroine_start_1",
+   "heroine_start_2",
+   "heroine_start_3",
+   "heroine_start_4",
+   "heroine_start_5",
+   "heroine_start_6",
+   "heroine_start_7",
+   "heroine_start_8",
+   "heroine_start_9",
+   "heroine_start_10",
+   "heroine_start_11",
+   "heroine_start_12",
+   "heroine_start_13",
+   "heroine_start_14",
+   "heroine_start_15",
+   "heroine_start_16",
+   "heroine_start_17",
+   "heroine_start_18",
+   "heroine_start_19",
+   "heroine_start_20",
+   "heroine_start_21",
+   "heroine_start_22",
+   "heroine_start_23",
+   "heroine_start_24",
+   "heroine_start_25",
+   "heroine_start_26",
+   "heroine_start_27",
+   "heroine_start_28",
+   "heroine_start_29",
+   "heroine_start_30",
+   "heroine_start_31"
   ],
   "bomb_tick": [
    "bomb_tick_0",

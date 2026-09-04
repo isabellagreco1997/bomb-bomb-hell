@@ -35,7 +35,8 @@ function spawnEnemies(){ candles.length=0; const dirs=['left','right','up','down
     candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:1.0,hp:2,state:'alive',st:0,flash:0}); } }
 spawnEnemies();
 const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; const RANGE=2;
-const keys={}; function beginRound(){ ready=true; music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=()=>{ ready=false; music.play().catch(()=>{}); }; intro.play().catch(()=>{ setTimeout(()=>{ready=false; music.play().catch(()=>{});},4900); }); pickPlay(startClips,-1); }
+const keys={}; let readyAt=0;
+function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=()=>{ ready=false; music.play().catch(()=>{}); }; intro.play().catch(()=>{ setTimeout(()=>{ready=false; music.play().catch(()=>{});},4900); }); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ started=true; beginRound(); e.preventDefault(); return; } if(gameOver){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 function drawBomb(b){
@@ -119,7 +120,8 @@ function draw(){
     if(c.state==='alive'){ if(c.flash>0 && Math.floor(c.flash/5)%2===0){ const an=meta.anims.candle_hurt; drawFrame(an[Math.floor(c.flash/10)%an.length],c.px,c.py+bob); } else drawFrame(meta.anims.candle_flicker[Math.floor(c.t/5)%10],c.px,c.py+bob); }
     else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; drawFrame(an[Math.floor(c.st/8)%an.length],c.px,c.py); } }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
-  if(deadT>0){ drawFrame(deadT<60?'heroine_dizzy_0':'heroine_defeated_0',hero.px,hero.py); }
+  if(ready){ const an=meta.anims.heroine_start; const k=Math.min(an.length-1,Math.floor((performance.now()-readyAt)/1000*7)); drawFrame(an[k],hero.px,hero.py); }   // start poses at 7 fps, hold the last one
+  else if(deadT>0){ drawFrame(deadT<60?'heroine_dizzy_0':'heroine_defeated_0',hero.px,hero.py); }
   else if(hurtT===0 || Math.floor(hurtT/4)%2===0) drawFrame(an[Math.floor(hero.t/(hero.moving?4:6))%an.length],hero.px,hero.py);
   // HUD: Bomberman-style top bar, hearts at the left
   ctx.setTransform(1,0,0,1,0,0);
