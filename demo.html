@@ -21,7 +21,7 @@ function drawBomb(b){
   // pulse like the original: the sphere swells and shrinks, faster as the fuse runs out
   const period=left>60?24:(left>30?12:6); const s=1-(Math.floor(b.t/(period/2))%2)*0.12;   // current size is the maximum; it pulses down from it
   const w=Math.round(f[2]*s), h=Math.round(f[3]*s);
-  const x=Math.round(b.x*T+T/2-w/2), y=Math.round(b.y*T+T-h+ (h-f[3])/2);
+  const x=Math.round(b.x*T+T/2-w/2), y=Math.round(b.y*T+T-h);   // anchored at the bottom: the base stays on the floor while it pulses
   const flash=left<=36 && Math.floor(left/4)%2===0;      // red flashes in the last 0.6 s
   if(!flash){ ctx.drawImage(atlas,f[0],f[1],f[2],f[3],x,y,w,h); return; }
   octx.clearRect(0,0,128,128); octx.globalCompositeOperation='source-over'; octx.drawImage(atlas,f[0],f[1],f[2],f[3],0,0,f[2],f[3]);
