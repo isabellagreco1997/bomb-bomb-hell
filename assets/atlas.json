@@ -1554,56 +1554,92 @@
    48,
    48
   ],
-  "tile_pillar": [
+  "tile_floor_1": [
    240,
    1836,
    48,
    48
   ],
-  "tile_wall": [
+  "tile_floor_2": [
    288,
    1836,
    48,
    48
   ],
-  "tile_crate_0": [
+  "tile_pillar": [
    336,
    1836,
    48,
    48
   ],
-  "tile_crate_0_broken": [
+  "tile_pillar_glow": [
    384,
    1836,
    48,
    48
   ],
-  "tile_crate_1": [
+  "tile_wall": [
    432,
    1836,
    48,
    48
   ],
-  "tile_crate_1_broken": [
+  "tile_crate_0": [
    0,
    1884,
    48,
    48
   ],
-  "hud_heart_full": [
+  "tile_crate_0_broken": [
    48,
+   1884,
+   48,
+   48
+  ],
+  "tile_crate_1": [
+   96,
+   1884,
+   48,
+   48
+  ],
+  "tile_crate_1_broken": [
+   144,
+   1884,
+   48,
+   48
+  ],
+  "tile_brazier": [
+   192,
+   1884,
+   48,
+   48
+  ],
+  "tile_brazier_1": [
+   240,
+   1884,
+   48,
+   48
+  ],
+  "tile_brazier_2": [
+   288,
+   1884,
+   48,
+   48
+  ],
+  "hud_heart_full": [
+   336,
    1884,
    24,
    24
   ],
   "hud_heart_half": [
-   72,
+   360,
    1884,
    24,
    24
   ],
   "hud_heart_empty": [
-   96,
+   384,
    1884,
    24,
    24
