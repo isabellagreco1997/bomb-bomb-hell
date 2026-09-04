@@ -57,7 +57,8 @@ window.addEventListener('error',e=>{ const b=document.createElement('div'); b.st
 (function(){ const c=document.getElementById('titlefx'), x=c.getContext('2d'); const ps=[]; let last=performance.now();
   function frame(now){ if(document.getElementById('title').hidden) return; const dt=Math.min(50,now-last); last=now;
     const W=c.width=c.clientWidth, H=c.height=c.clientHeight; x.clearRect(0,0,W,H);
-    if(ps.length<70 && Math.random()<0.6) ps.push({x:Math.random()*W, y:H+10, vy:-(0.25+Math.random()*0.5)*(H/400), vx:(Math.random()-0.5)*0.3, s:0.6+Math.random()*0.9, life:2500+Math.random()*3000, t:0, ph:Math.random()*6.3});
+    if(window._noEmbers) ps.length=0;
+    if(!window._noEmbers && ps.length<70 && Math.random()<0.6) ps.push({x:Math.random()*W, y:H+10, vy:-(0.25+Math.random()*0.5)*(H/400), vx:(Math.random()-0.5)*0.3, s:0.6+Math.random()*0.9, life:2500+Math.random()*3000, t:0, ph:Math.random()*6.3});
     for(let i=ps.length-1;i>=0;i--){ const p=ps[i]; p.t+=dt; p.x+=p.vx+Math.sin(p.t/400+p.ph)*0.3; p.y+=p.vy*(dt/16.7); if(p.t>p.life||p.y<-10){ps.splice(i,1);continue;}
       const a=Math.sin(Math.PI*Math.min(1,p.t/p.life)); const k=W/736, r=p.s*k;
       const gl=x.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6); gl.addColorStop(0,`rgba(255,180,80,${(0.55*a).toFixed(2)})`); gl.addColorStop(0.4,`rgba(255,90,30,${(0.22*a).toFixed(2)})`); gl.addColorStop(1,'rgba(255,60,20,0)');
@@ -72,7 +73,7 @@ function showGame(){ const t=document.getElementById('title'); t.hidden=true; t.
 document.getElementById('play').addEventListener('click',()=>{ if(playing) return; playing=true;
   const v=document.getElementById('titlevid'), btn=document.getElementById('play'); btn.style.display='none';
   // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
-  v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; document.getElementById('titlefx').style.display='none';   // silent, and the ember overlay stops with the title loop
+  v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; window._noEmbers=true;   // silent; embers stop, the vignette stays over the press video
   let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); setTimeout(()=>{ f.style.transition='opacity .9s ease-out'; f.style.opacity='0'; },120); };   // black, then the game fades in over 0.9 s
   v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
