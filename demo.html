@@ -12,6 +12,7 @@
 <canvas id="c" hidden></canvas>
 <div id="flash" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30;transition:opacity .9s ease-out"></div>
 <script>
+const showcase=new URLSearchParams(location.search).get('showcase');   // scripted sound showcase mode
 const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
@@ -38,14 +39,14 @@ function sfxDrop(chained){ if(chained) lastMulti=pickPlay(multiClips,lastMulti);
 const solid=(cx,cy)=>cx<=0||cy<=0||cx>=WC-1||cy>=WR-1||(cx%2==0&&cy%2==0);
 const cam={x:0,y:0};
 let crates=[];   // crates[y][x]: 0 none, 1/2 crate type, negative = breaking (frames left, encoded as -n)
-function genCrates(){ crates=[]; for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++){ let v=0; if(!solid(x,y) && (Math.abs(x-1)+Math.abs(y-1))>3 && Math.random()<0.38) v=1+Math.floor(Math.random()*2); crates[y].push(v);} } }
+function genCrates(){ crates=[]; if(showcase){ for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++) crates[y].push((!solid(x,y)&&y>=4&&Math.random()<0.4)?1+Math.floor(Math.random()*2):0); } return; } for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++){ let v=0; if(!solid(x,y) && (Math.abs(x-1)+Math.abs(y-1))>3 && Math.random()<0.38) v=1+Math.floor(Math.random()*2); crates[y].push(v);} } }
 genCrates();
 const crateAt=(x,y)=>crates[y]&&crates[y][x]>0;
 let worldT=0; const embers=[];   // ambient: lava pulse, statue eye flares, wall braziers, drifting embers
 const hash=(x,y)=>((x*73856093)^(y*19349663))>>>0;
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
 const candles=[]; const ENEMIES=2;
-function spawnEnemies(){ candles.length=0; const dirs=['left','right','up','down']; let tries=0;
+function spawnEnemies(){ candles.length=0; if(showcase){ candles.push({x:WC-2,y:WR-2,px:(WC-2)*T,py:(WR-2)*T,dir:'left',t:0,speed:0,hp:2,state:'alive',st:0,flash:0},{x:WC-2,y:WR-3,px:(WC-2)*T,py:(WR-3)*T,dir:'left',t:0,speed:0,hp:2,state:'alive',st:0,flash:0}); return; } const dirs=['left','right','up','down']; let tries=0;
   while(candles.length<ENEMIES && tries++<500){ const x=1+Math.floor(Math.random()*(WC-2)), y=1+Math.floor(Math.random()*(WR-2));
     if(solid(x,y) || crateAt(x,y) || (Math.abs(x-1)+Math.abs(y-1))<8 || candles.some(c=>c.x===x&&c.y===y)) continue;
     candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:1.0,hp:2,state:'alive',st:0,flash:0}); } }
@@ -54,7 +55,8 @@ const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameO
 const keys={};
 window.addEventListener('error',e=>{ const b=document.createElement('div'); b.style.cssText='position:fixed;left:8px;bottom:8px;z-index:9;background:#400;color:#fdd;font:12px monospace;padding:6px 10px;max-width:90vw'; b.textContent='error: '+e.message+' @'+e.lineno; document.body.appendChild(b); }); let readyAt=0;
 // title overlay: vignette + floating embers, drawn on a canvas over the looping video
-window._noEmbers=true;   // no floating particles on the title (her call); the overlay only draws the vignette
+window._noEmbers=true;
+if(showcase) setTimeout(()=>document.getElementById('play').click(),1500);   // no floating particles on the title (her call); the overlay only draws the vignette
 (function(){ const c=document.getElementById('titlefx'), x=c.getContext('2d'); const ps=[]; let last=performance.now();
   function frame(now){ if(document.getElementById('title').hidden) return; const dt=Math.min(50,now-last); last=now;
     const W=c.width=c.clientWidth, H=c.height=c.clientHeight; x.clearRect(0,0,W,H);
@@ -74,13 +76,22 @@ function showGame(){ const t=document.getElementById('title'); t.hidden=true; t.
 document.getElementById('play').addEventListener('click',()=>{ if(playing) return; playing=true;
   const v=document.getElementById('titlevid'), btn=document.getElementById('play'); btn.style.display='none';
   // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
-  v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; window._noEmbers=true;   // silent; embers stop, the vignette stays over the press video
+  v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; window._noEmbers=true;
+if(showcase) setTimeout(()=>document.getElementById('play').click(),1500);   // silent; embers stop, the vignette stays over the press video
   let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); setTimeout(()=>{ f.style.transition='opacity .9s ease-out'; f.style.opacity='0'; },120); };   // black, then the game fades in over 0.9 s
   v.playbackRate=1.4; v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });   // 6 s video in about 4.3 s
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
-function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
+function beginRound(){ if(showcase) scStart(); ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
+let caption='', captionT=0; function say(t){ caption=t; captionT=180; }
+// showcase: a scripted round that triggers every sound in order. steps = [frames to wait, action]
+let sc=null;
+function scStart(){ sc={i:0,wait:0}; }
+const SC=[
+ [30,()=>say('READY?  intro jingle + start line')],
+ [0,()=>{}],
+];
 function drawBomb(b){
   const FUSE=150, tk=meta.anims.bomb_tick, f=meta.frames[tk[Math.min(tk.length-1,Math.floor(b.t/FUSE*tk.length))]];
   const left=FUSE-b.t;
@@ -100,6 +111,26 @@ function hit(src){
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
 function resetGame(){ genCrates(); lives=3; deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
+const SC_STEPS=[   // [how many frames this step lasts, what it does]
+ [60,()=>{ say('footsteps'); keys.ArrowRight=1; }],
+ [20,()=>{ keys.ArrowRight=0; }],
+ [70,()=>{ say('drop line + fuse tick'); dropBomb(); keys.ArrowLeft=1; }],
+ [60,()=>{ keys.ArrowLeft=0; }],
+ [60,()=>{ say('explosion'); }],
+ [30,()=>{ say('multi-bomb line'); dropBomb(); keys.ArrowRight=1; }],
+ [90,()=>{ dropBomb(); }],
+ [100,()=>{ keys.ArrowRight=0; }],
+ [200,()=>{ say('hurt line: caught in her own blast'); lives=3; hurtT=0; dropBomb(); }],
+ [60,()=>{ say('enemy contact line'); lives=3; hurtT=0; const c=candles[0]; c.state='alive'; c.hp=2; c.x=hero.x; c.y=hero.y; c.px=hero.px; c.py=hero.py; }],
+ [60,()=>{ const c=candles[0]; c.x=WC-2; c.y=WR-2; c.px=c.x*T; c.py=c.y*T; lives=3; }],
+ [60,()=>{ say('kill line: an enemy takes two hits'); hurtT=0; const c=candles[0]; c.x=hero.x+1; c.y=hero.y; c.px=c.x*T; c.py=c.y*T; c.flash=0; crates[c.y][c.x]=0; dropBomb(); keys.ArrowLeft=1; }],
+ [120,()=>{ keys.ArrowLeft=0; }],
+ [60,()=>{ const c=candles[0]; c.x=hero.x+1; c.y=hero.y; c.px=c.x*T; c.py=c.y*T; c.flash=0; crates[c.y][c.x]=0; dropBomb(); keys.ArrowLeft=1; }],
+ [160,()=>{ keys.ArrowLeft=0; }],
+ [480,()=>{ say('win: her laugh + level clear'); for(const c of candles){ c.state='dead'; } }],
+ [700,()=>{ say('game over: death line + sound'); resetGame(); ready=false; lives=1; hurtT=0; dropBomb(); }],
+ [60,()=>{ say('end of showcase'); }],
+];
 function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
@@ -119,6 +150,8 @@ function update(){
   for(let i=bombs.length-1;i>=0;i--) if(bombs[i].dead) bombs.splice(i,1);
   for(const f of fires) f.t++;
   worldT++;
+  if(captionT>0) captionT--;
+  if(sc && !ready && deadT===0 && !gameOver){ if(sc.wait>0){ sc.wait--; } else if(sc.i<SC_STEPS.length){ const [w,fn]=SC_STEPS[sc.i++]; fn(); sc.wait=w; } }
   // embers: spawn over floor tiles in view, drift up and fade
   if(embers.length<40 && Math.random()<0.5){ const x=cam.x+Math.random()*COLS*T, y=cam.y+Math.random()*ROWS*T; const tx=Math.floor(x/T), ty=Math.floor(y/T); if(!solid(tx,ty)) embers.push({x,y,vy:-(0.15+Math.random()*0.25),vx:(Math.random()-0.5)*0.15,life:90+Math.random()*60,t:0}); }
   for(let i=embers.length-1;i>=0;i--){ const e=embers[i]; e.t++; e.x+=e.vx; e.y+=e.vy; if(e.t>e.life) embers.splice(i,1); }
@@ -186,6 +219,7 @@ function draw(){
   ctx.fillStyle='#1a0a0e'; ctx.fillRect(0,0,cv.width,HUD); ctx.fillStyle='#c9a24a'; ctx.fillRect(0,HUD-3,cv.width,2); ctx.fillRect(0,0,cv.width,1);
   for(let i=0;i<3;i++){ const f=meta.frames[i<lives?'hud_heart_full':'hud_heart_empty']; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],12+i*28,8,f[2],f[3]); }
   if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 22px monospace'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
+  if(captionT>0&&caption){ ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,22); ctx.fillStyle='#f3d9a0'; ctx.font='bold 13px monospace'; ctx.textAlign='center'; ctx.fillText(caption, cv.width/2, HUD+16); }
   if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('PHASE 1 CLEAR', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
   if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
 }
