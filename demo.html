@@ -75,7 +75,7 @@ document.getElementById('play').addEventListener('click',()=>{ if(playing) retur
   // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
   v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; window._noEmbers=true;   // silent; embers stop, the vignette stays over the press video
   let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); setTimeout(()=>{ f.style.transition='opacity .9s ease-out'; f.style.opacity='0'; },120); };   // black, then the game fades in over 0.9 s
-  v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });
+  v.playbackRate=1.4; v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });   // 6 s video in about 4.3 s
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
