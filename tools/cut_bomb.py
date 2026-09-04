@@ -28,7 +28,9 @@ def sparks(a):
     r,g,b=a[...,0],a[...,1],a[...,2]; return np.clip((r+g-330)/120,0,1)*np.clip((r-120)/80,0,1)
 def frame(i):
     a=np.array(Image.open(fs[i]).convert('RGBA')).astype(float)
-    alpha=np.maximum(core*255.0, sparks(a)*255.0); k=a.copy(); k[...,3]=alpha
+    di=np.sqrt(((a[...,:3]-bg)**2).sum(-1))
+    static=sph | (above & (di>40))                 # above the sphere a static pixel only counts if THIS frame has something there (no background through old spark rays)
+    alpha=np.maximum(static*255.0, sparks(a)*255.0); k=a.copy(); k[...,3]=alpha
     im=Image.fromarray(k.astype('uint8'),'RGBA')
     small=im.convert('RGBa').resize((round(im.width*SCALE),round(im.height*SCALE)),Image.LANCZOS).convert('RGBA')
     fr=Image.new('RGBA',(FW,FH),(0,0,0,0)); fr.paste(small,(int(round(FW/2-cx*SCALE)),int(round((FH-3)-body_bottom*SCALE))),small); return fr
