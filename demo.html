@@ -54,6 +54,7 @@ const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameO
 const keys={};
 window.addEventListener('error',e=>{ const b=document.createElement('div'); b.style.cssText='position:fixed;left:8px;bottom:8px;z-index:9;background:#400;color:#fdd;font:12px monospace;padding:6px 10px;max-width:90vw'; b.textContent='error: '+e.message+' @'+e.lineno; document.body.appendChild(b); }); let readyAt=0;
 // title overlay: vignette + floating embers, drawn on a canvas over the looping video
+window._noEmbers=true;   // no floating particles on the title (her call); the overlay only draws the vignette
 (function(){ const c=document.getElementById('titlefx'), x=c.getContext('2d'); const ps=[]; let last=performance.now();
   function frame(now){ if(document.getElementById('title').hidden) return; const dt=Math.min(50,now-last); last=now;
     const W=c.width=c.clientWidth, H=c.height=c.clientHeight; x.clearRect(0,0,W,H);
