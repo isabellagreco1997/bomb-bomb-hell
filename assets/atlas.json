@@ -4,297 +4,417 @@
   60
  ],
  "frames": {
-  "heroine_idle_down": [
+  "heroine_idle_down_0": [
    0,
+   0,
+   48,
+   60
+  ],
+  "heroine_idle_down_1": [
+   48,
+   0,
+   48,
+   60
+  ],
+  "heroine_idle_down_2": [
+   96,
+   0,
+   48,
+   60
+  ],
+  "heroine_idle_down_3": [
+   144,
    0,
    48,
    60
   ],
   "heroine_cycle_down_0": [
-   48,
+   192,
    0,
    48,
    60
   ],
   "heroine_cycle_down_1": [
-   96,
+   240,
    0,
    48,
    60
   ],
   "heroine_cycle_down_2": [
-   144,
+   288,
    0,
    48,
    60
   ],
   "heroine_cycle_down_3": [
-   192,
+   336,
    0,
    48,
    60
   ],
-  "heroine_idle_up": [
-   240,
+  "heroine_cycle_down_4": [
+   384,
    0,
+   48,
+   60
+  ],
+  "heroine_cycle_down_5": [
+   432,
+   0,
+   48,
+   60
+  ],
+  "heroine_cycle_down_6": [
+   0,
+   60,
+   48,
+   60
+  ],
+  "heroine_cycle_down_7": [
+   48,
+   60,
+   48,
+   60
+  ],
+  "heroine_idle_up_0": [
+   96,
+   60,
+   48,
+   60
+  ],
+  "heroine_idle_up_1": [
+   144,
+   60,
+   48,
+   60
+  ],
+  "heroine_idle_up_2": [
+   192,
+   60,
+   48,
+   60
+  ],
+  "heroine_idle_up_3": [
+   240,
+   60,
    48,
    60
   ],
   "heroine_cycle_up_0": [
    288,
-   0,
+   60,
    48,
    60
   ],
   "heroine_cycle_up_1": [
    336,
-   0,
+   60,
    48,
    60
   ],
   "heroine_cycle_up_2": [
    384,
-   0,
+   60,
    48,
    60
   ],
   "heroine_cycle_up_3": [
    432,
-   0,
+   60,
    48,
    60
   ],
-  "heroine_idle_left": [
+  "heroine_cycle_up_4": [
    0,
-   60,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_up_5": [
+   48,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_up_6": [
+   96,
+   120,
+   48,
+   60
+  ],
+  "heroine_cycle_up_7": [
+   144,
+   120,
+   48,
+   60
+  ],
+  "heroine_idle_left_0": [
+   192,
+   120,
+   48,
+   60
+  ],
+  "heroine_idle_left_1": [
+   240,
+   120,
+   48,
+   60
+  ],
+  "heroine_idle_left_2": [
+   288,
+   120,
+   48,
+   60
+  ],
+  "heroine_idle_left_3": [
+   336,
+   120,
    48,
    60
   ],
   "heroine_cycle_left_0": [
-   48,
-   60,
+   384,
+   120,
    48,
    60
   ],
   "heroine_cycle_left_1": [
-   96,
-   60,
+   432,
+   120,
    48,
    60
   ],
   "heroine_cycle_left_2": [
-   144,
-   60,
+   0,
+   180,
    48,
    60
   ],
   "heroine_cycle_left_3": [
-   192,
-   60,
+   48,
+   180,
    48,
    60
   ],
   "heroine_cycle_left_4": [
-   240,
-   60,
+   96,
+   180,
    48,
    60
   ],
   "heroine_cycle_left_5": [
-   288,
-   60,
+   144,
+   180,
    48,
    60
   ],
   "heroine_cycle_left_6": [
-   336,
-   60,
+   192,
+   180,
    48,
    60
   ],
   "heroine_cycle_left_7": [
-   384,
-   60,
+   240,
+   180,
    48,
    60
   ],
-  "heroine_idle_right": [
+  "heroine_idle_right_0": [
+   288,
+   180,
+   48,
+   60
+  ],
+  "heroine_idle_right_1": [
+   336,
+   180,
+   48,
+   60
+  ],
+  "heroine_idle_right_2": [
+   384,
+   180,
+   48,
+   60
+  ],
+  "heroine_idle_right_3": [
    432,
-   60,
+   180,
    48,
    60
   ],
   "heroine_cycle_right_0": [
    0,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_1": [
    48,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_2": [
    96,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_3": [
    144,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_4": [
    192,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_5": [
    240,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_6": [
    288,
-   120,
+   240,
    48,
    60
   ],
   "heroine_cycle_right_7": [
    336,
-   120,
+   240,
    48,
    60
   ],
   "candle_idle_0": [
    384,
-   120,
+   240,
    48,
    60
   ],
   "candle_idle_1": [
    432,
-   120,
+   240,
    48,
    60
   ],
   "candle_idle_2": [
    0,
-   180,
+   300,
    48,
    60
   ],
   "candle_move_0": [
    48,
-   180,
+   300,
    48,
    60
   ],
   "candle_move_1": [
    96,
-   180,
+   300,
    48,
    60
   ],
   "candle_move_2": [
    144,
-   180,
+   300,
    48,
    60
   ],
   "candle_hurt_0": [
    192,
-   180,
+   300,
    48,
    60
   ],
   "candle_hurt_1": [
    240,
-   180,
+   300,
    48,
    60
   ],
   "candle_hurt_2": [
    288,
-   180,
+   300,
    48,
    60
   ],
   "candle_defeated_0": [
    336,
-   180,
+   300,
    48,
    60
   ],
   "candle_defeated_1": [
    384,
-   180,
+   300,
    48,
    60
   ],
   "candle_flicker_0": [
    432,
-   180,
+   300,
    48,
    60
   ],
   "candle_flicker_1": [
    0,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_2": [
    48,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_3": [
    96,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_4": [
    144,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_5": [
    192,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_6": [
    240,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_7": [
    288,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_8": [
    336,
-   240,
+   360,
    48,
    60
   ],
   "candle_flicker_9": [
    384,
-   240,
+   360,
    48,
    60
   ]
@@ -304,19 +424,33 @@
    "heroine_cycle_down_0",
    "heroine_cycle_down_1",
    "heroine_cycle_down_2",
-   "heroine_cycle_down_3"
+   "heroine_cycle_down_3",
+   "heroine_cycle_down_4",
+   "heroine_cycle_down_5",
+   "heroine_cycle_down_6",
+   "heroine_cycle_down_7"
   ],
   "heroine_idle_down": [
-   "heroine_idle_down"
+   "heroine_idle_down_0",
+   "heroine_idle_down_1",
+   "heroine_idle_down_2",
+   "heroine_idle_down_3"
   ],
   "heroine_walk_up": [
    "heroine_cycle_up_0",
    "heroine_cycle_up_1",
    "heroine_cycle_up_2",
-   "heroine_cycle_up_3"
+   "heroine_cycle_up_3",
+   "heroine_cycle_up_4",
+   "heroine_cycle_up_5",
+   "heroine_cycle_up_6",
+   "heroine_cycle_up_7"
   ],
   "heroine_idle_up": [
-   "heroine_idle_up"
+   "heroine_idle_up_0",
+   "heroine_idle_up_1",
+   "heroine_idle_up_2",
+   "heroine_idle_up_3"
   ],
   "heroine_walk_left": [
    "heroine_cycle_left_0",
@@ -329,7 +463,10 @@
    "heroine_cycle_left_7"
   ],
   "heroine_idle_left": [
-   "heroine_idle_left"
+   "heroine_idle_left_0",
+   "heroine_idle_left_1",
+   "heroine_idle_left_2",
+   "heroine_idle_left_3"
   ],
   "heroine_walk_right": [
    "heroine_cycle_right_0",
@@ -342,7 +479,10 @@
    "heroine_cycle_right_7"
   ],
   "heroine_idle_right": [
-   "heroine_idle_right"
+   "heroine_idle_right_0",
+   "heroine_idle_right_1",
+   "heroine_idle_right_2",
+   "heroine_idle_right_3"
   ],
   "candle_idle": [
    "candle_idle_0",

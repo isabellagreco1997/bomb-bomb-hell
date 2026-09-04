@@ -26,7 +26,7 @@ function step(){
     else hero.moving=false;
   }
   const tx=hero.x*T,ty=hero.y*T; hero.px+=Math.sign(tx-hero.px)*Math.min(hero.speed,Math.abs(tx-hero.px)); hero.py+=Math.sign(ty-hero.py)*Math.min(hero.speed,Math.abs(ty-hero.py));
-  if(hero.moving)hero.t++;
+  hero.t++;
   // candle: wanders left/right, floats
   const ctx_=candle.x*T; if(Math.abs(candle.px-ctx_)<0.01){const d=candle.dir==='left'?-1:1; if(solid(candle.x+d,candle.y))candle.dir=candle.dir==='left'?'right':'left'; else candle.x+=d;}
   candle.px+=Math.sign(candle.x*T-candle.px)*Math.min(candle.speed,Math.abs(candle.x*T-candle.px)); candle.t++;
@@ -35,7 +35,7 @@ function step(){
   const bob=Math.round(Math.sin(candle.t/11)*3);
   drawFrame(meta.anims.candle_flicker[Math.floor(candle.t/5)%10],candle.px,candle.py+bob);
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
-  drawFrame(an[Math.floor(hero.t/7)%an.length],hero.px,hero.py);
+  drawFrame(an[Math.floor(hero.t/(hero.moving?4:14))%an.length],hero.px,hero.py);
   requestAnimationFrame(step);
 }
 step();
