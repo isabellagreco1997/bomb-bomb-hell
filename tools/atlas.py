@@ -7,7 +7,7 @@ for d in ('down','up','left','right'):
     names+=[f'heroine_idle_{d}_{j}' for j in range(24)]
     names+= [f'heroine_cycle_{d}_{j}' for j in range(json.load(open(f'{D}/heroine_cycles.json'))[d])]
 for k,n in (('idle',3),('move',3),('hurt',3),('defeated',2),('flicker',10)): names+=[f'candle_{k}_{i}' for i in range(n)]
-names+=[f'bomb_tick_{j}' for j in range(10)]+[f'bomb_burst_{j}' for j in range(6)]
+names+=[f'bomb_tick_{j}' for j in range(10)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
 ims=[Image.open(f'{D}/{n}.png') for n in names]
 # shelf packer: frames of mixed sizes, rows of equal height, atlas width 512
@@ -28,7 +28,6 @@ meta['anims']['candle_move']=['candle_move_0','candle_move_1','candle_move_2','c
 meta['anims']['candle_hurt']=['candle_hurt_0','candle_hurt_1','candle_hurt_2']
 meta['anims']['candle_flicker']=[f'candle_flicker_{j}' for j in range(10)]
 meta['anims']['bomb_tick']=[f'bomb_tick_{j}' for j in range(10)]
-meta['anims']['bomb_burst']=[f'bomb_burst_{j}' for j in range(6)]
 for k in ('h','v','c'): meta['anims'][f'fire_{k}']=[f'fire_{k}_{j}' for j in range(3)]
 meta['anims']['candle_defeated']=['candle_defeated_0','candle_defeated_1']
 atlas.save(f'{OUT}/atlas.png'); json.dump(meta,open(f'{OUT}/atlas.json','w'),indent=1)
