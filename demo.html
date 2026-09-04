@@ -114,7 +114,7 @@ function resetGame(){ genCrates(); lives=3; deadT=0; gameOver=false; winT=0; cle
 const SC_STEPS=[   // [how many frames this step lasts, what it does]
  [60,()=>{ say('footsteps'); keys.ArrowRight=1; }],
  [20,()=>{ keys.ArrowRight=0; }],
- [70,()=>{ say('drop line + fuse tick'); dropBomb(); keys.ArrowLeft=1; }],
+ [70,()=>{ say('drop line + fuse tick, then she runs'); dropBomb(); keys.ArrowLeft=1; }],
  [60,()=>{ keys.ArrowLeft=0; }],
  [60,()=>{ say('explosion'); }],
  [30,()=>{ say('multi-bomb line'); dropBomb(); keys.ArrowRight=1; }],
@@ -123,10 +123,13 @@ const SC_STEPS=[   // [how many frames this step lasts, what it does]
  [200,()=>{ say('hurt line: caught in her own blast'); lives=3; hurtT=0; dropBomb(); }],
  [60,()=>{ say('enemy contact line'); lives=3; hurtT=0; const c=candles[0]; c.state='alive'; c.hp=2; c.x=hero.x; c.y=hero.y; c.px=hero.px; c.py=hero.py; }],
  [60,()=>{ const c=candles[0]; c.x=WC-2; c.y=WR-2; c.px=c.x*T; c.py=c.y*T; lives=3; }],
- [60,()=>{ say('kill line: an enemy takes two hits'); hurtT=0; const c=candles[0]; c.x=hero.x+1; c.y=hero.y; c.px=c.x*T; c.py=c.y*T; c.flash=0; crates[c.y][c.x]=0; dropBomb(); keys.ArrowLeft=1; }],
- [120,()=>{ keys.ArrowLeft=0; }],
- [60,()=>{ const c=candles[0]; c.x=hero.x+1; c.y=hero.y; c.px=c.x*T; c.py=c.y*T; c.flash=0; crates[c.y][c.x]=0; dropBomb(); keys.ArrowLeft=1; }],
- [160,()=>{ keys.ArrowLeft=0; }],
+ [70,()=>{ say('she plants a bomb by the enemy and runs'); hurtT=0; const c=candles[0]; c.x=hero.x+2; c.y=hero.y; c.px=c.x*T; c.py=c.y*T; c.flash=0; crates[c.y][c.x]=0; crates[c.y][c.x-1]=0; dropBomb(); keys.ArrowLeft=1; }],
+ [100,()=>{ keys.ArrowLeft=0; say('first hit: she talks'); }],
+ [60,()=>{ say('second bomb, she runs again'); keys.ArrowRight=1; }],
+ [75,()=>{ keys.ArrowRight=0; const c=candles[0]; c.x=hero.x+2; c.y=hero.y; c.px=c.x*T; c.py=c.y*T; c.flash=0; crates[c.y][c.x]=0; crates[c.y][c.x-1]=0; dropBomb(); keys.ArrowLeft=1; }],
+ [10,()=>{ keys.ArrowLeft=0; }],
+ [90,()=>{ say('kill line'); }],
+ [150,()=>{ }],
  [480,()=>{ say('win: her laugh + level clear'); for(const c of candles){ c.state='dead'; } }],
  [700,()=>{ say('game over: death line + sound'); resetGame(); ready=false; lives=1; hurtT=0; dropBomb(); }],
  [60,()=>{ say('end of showcase'); }],
@@ -166,7 +169,7 @@ function update(){
   if(winT>0){ winT++; if(winT>360+30) cleared=true; }
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
-      if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; } } }
+      if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; lastKill=pickPlay(killClips,lastKill); } } }   // she talks on the hit and on the kill
     else if(c.state==='dying'){ c.st++; if(c.st>60) c.state='dead'; }
   }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
@@ -182,7 +185,7 @@ function update(){
   hero.t++;
   // enemies: grid-locked wander; at each tile keep going, or turn when blocked (or at random, 1 in 6)
   const DIRS={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]};
-  for(const c of candles){ c.t++; if(c.state!=='alive') continue;
+  for(const c of candles){ c.t++; if(c.state!=='alive' || c.speed===0) continue;   // speed 0 = pinned (showcase)
     const at=Math.abs(c.px-c.x*T)<0.01&&Math.abs(c.py-c.y*T)<0.01;
     if(at){ let [dx,dy]=DIRS[c.dir]; const blocked=(x,y)=>solid(x,y)||crateAt(x,y)||bombs.some(b=>b.x===x&&b.y===y);
       if(blocked(c.x+dx,c.y+dy)||Math.random()<1/6){ const opts=Object.keys(DIRS).filter(k=>!blocked(c.x+DIRS[k][0],c.y+DIRS[k][1])); if(opts.length) c.dir=opts[Math.floor(Math.random()*opts.length)]; [dx,dy]=DIRS[c.dir]; }
