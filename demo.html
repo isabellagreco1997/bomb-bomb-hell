@@ -65,7 +65,8 @@ window.addEventListener('error',e=>{ const b=document.createElement('div'); b.st
     const vg=x.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35,W/2,H/2,Math.max(W,H)*0.72); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.82)'); x.fillStyle=vg; x.fillRect(0,0,W,H);
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame); })();
-document.getElementById('play').addEventListener('click',()=>{ const t=document.getElementById('title'); t.hidden=true; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } });
+document.addEventListener('click',()=>{ window._clicks=(window._clicks||0)+1; }, true);
+document.getElementById('play').addEventListener('click',()=>{ const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; document.getElementById('titlevid').pause(); cv.hidden=false; if(!started){ started=true; beginRound(); } });
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
@@ -181,7 +182,7 @@ function draw(){
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
 function step(now){
-  if(auto && !started){ started=true; ready=false; document.getElementById('title').hidden=true; cv.hidden=false; }
+  if(auto && !started){ started=true; ready=false; const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; cv.hidden=false; }
   if(!meta||!atlas.complete){ last=now||performance.now(); requestAnimationFrame(step); return; }
   now=now||performance.now(); acc+=Math.min(100,now-last); last=now;
   let n=0; while(acc>=STEP && n<4){ update(); acc-=STEP; n++; }
@@ -192,7 +193,7 @@ function step(now){
 // --- perf telemetry: every 3 s send fps + step cost + scale to the local server log (GET, shows as a 404 line) ---
 let _fr=0,_stepMs=0,_t0=performance.now(); const _step=step;
 function fpsReport(){ const dt=(performance.now()-_t0)/1000; const fps=(_fr/dt).toFixed(1), ms=(_stepMs/Math.max(1,_fr)).toFixed(2);
-  fetch(`/stat?fps=${fps}&stepms=${ms}&scale=${SCALE}&dpr=${devicePixelRatio}&win=${innerWidth}x${innerHeight}&bombs=${bombs.length}&fires=${fires.length}`).catch(()=>{}); _fr=0;_stepMs=0;_t0=performance.now(); }
+  fetch(`/stat?fps=${fps}&stepms=${ms}&scale=${SCALE}&dpr=${devicePixelRatio}&win=${innerWidth}x${innerHeight}&bombs=${bombs.length}&fires=${fires.length}&title=${document.getElementById('title').hidden?0:1}&started=${started?1:0}&ready=${ready?1:0}&clicks=${window._clicks||0}`).catch(()=>{}); _fr=0;_stepMs=0;_t0=performance.now(); }
 setInterval(fpsReport,3000);
 step=function(now){ const a=performance.now(); _step(now); _stepMs+=performance.now()-a; _fr++; };
 requestAnimationFrame(step);
