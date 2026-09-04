@@ -8,6 +8,9 @@ const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
 const off=document.createElement('canvas'); off.width=128; off.height=128; const octx=off.getContext('2d'); octx.imageSmoothingEnabled=false;
 const atlas=new Image(); atlas.src='assets/atlas.png';
 let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
+// voice lines: one random clip per bomb drop, never the same one twice in a row
+let dropClips=[]; let lastClip=-1; fetch('assets/audio/drop.json').then(r=>r.json()).then(list=>{dropClips=list.map(p=>{const a=new Audio(p); a.preload='auto'; a.volume=0.8; return a;});});
+function sfxDrop(){ if(!dropClips.length) return; let i; do{ i=Math.floor(Math.random()*dropClips.length); }while(i===lastClip&&dropClips.length>1); lastClip=i; const a=dropClips[i].cloneNode(); a.volume=0.8; a.play().catch(()=>{}); }
 // grid: 1 = pillar (every other cell, classic bomberman), 0 = floor
 const solid=(cx,cy)=>cx<=0||cy<=0||cx>=COLS-1||cy>=ROWS-1||(cx%2==0&&cy%2==0);
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
@@ -28,7 +31,7 @@ function drawBomb(b){
   octx.globalCompositeOperation='source-atop'; octx.fillStyle='rgba(255,40,40,0.55)'; octx.fillRect(0,0,f[2],f[3]);
   ctx.drawImage(off,0,0,f[2],f[3],x,y,w,h);
 }
-function dropBomb(){ if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); }
+function dropBomb(){ if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
   for(const [dx,dy,k] of [[1,0,'h'],[-1,0,'h'],[0,1,'v'],[0,-1,'v']]){
