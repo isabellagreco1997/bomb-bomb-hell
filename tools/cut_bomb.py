@@ -3,7 +3,7 @@ import sys, os, glob; sys.path.insert(0,'tools')
 from spritecut import *
 from PIL import Image
 import numpy as np
-A='assets/sprites/48/anim'; W='work'; FW,FH=48,64
+A='assets/sprites/48/anim'; W='work'; FW,FH=96,96   # room for the spark shower: the full video frame at this scale is 58x81
 fs=sorted(glob.glob('work/vid_bomb/f_*.png')); bg=np.array([28.,0.,7.])
 THR=int(sys.argv[1]) if len(sys.argv)>1 else 10; SOFT=8
 def cutf(i, keep_all=False, thr=None):

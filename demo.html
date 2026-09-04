@@ -24,7 +24,7 @@ function explode(b){
   fires.push({cells,t:0});
 }
 function inFire(x,y){ return fires.some(f=>f.cells.some(c=>c[0]===x&&c[1]===y)); }
-function drawFrame(name,x,y){const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],Math.round(x),Math.round(y)-(f[3]-T),f[2],f[3]);}
+function drawFrame(name,x,y){const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],Math.round(x)-((f[2]-T)>>1),Math.round(y)-(f[3]-T),f[2],f[3]);}   // bottom on the tile, centred horizontally
 function step(){
   if(!meta||!atlas.complete){requestAnimationFrame(step);return}
   // bombs tick (2.5 s), then burst into a cross of fire that lasts 0.7 s

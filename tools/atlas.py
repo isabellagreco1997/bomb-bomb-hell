@@ -10,10 +10,16 @@ for k,n in (('idle',3),('move',3),('hurt',3),('defeated',2),('flicker',10)): nam
 names+=[f'bomb_tick_{j}' for j in range(10)]+[f'bomb_burst_{j}' for j in range(6)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
 ims=[Image.open(f'{D}/{n}.png') for n in names]
-FW,FH=48,64; cols=10; rows=(len(ims)+cols-1)//cols
-atlas=Image.new('RGBA',(FW*cols,FH*rows),(0,0,0,0)); meta={'frame':[FW,FH],'frames':{},'anims':{}}
-for i,(n,im) in enumerate(zip(names,ims)):
-    x,y=(i%cols)*FW,(i//cols)*FH; atlas.paste(im,(x,y+FH-im.height)); meta['frames'][n]=[x,y+FH-im.height,im.width,im.height]
+# shelf packer: frames of mixed sizes, rows of equal height, atlas width 512
+AW=512; meta={'frames':{},'anims':{}}; order=sorted(range(len(ims)),key=lambda i:(-ims[i].height,-ims[i].width))
+x=y=rowh=0; pos={}
+for i in order:
+    im=ims[i]
+    if x+im.width>AW: x=0; y+=rowh; rowh=0
+    pos[i]=(x,y); x+=im.width; rowh=max(rowh,im.height)
+AH=y+rowh; atlas=Image.new('RGBA',(AW,AH),(0,0,0,0))
+for i,(px,py) in pos.items():
+    im=ims[i]; atlas.paste(im,(px,py)); meta['frames'][names[i]]=[px,py,im.width,im.height]
 for d in ('down','up','left','right'):
     meta['anims'][f'heroine_walk_{d}']=[f'heroine_cycle_{d}_{j}' for j in range(json.load(open(f'{D}/heroine_cycles.json'))[d])]
     meta['anims'][f'heroine_idle_{d}']=[f'heroine_idle_{d}_{j}' for j in range(24)]
