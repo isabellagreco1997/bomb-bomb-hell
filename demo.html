@@ -94,7 +94,7 @@ function update(){
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
   if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
   if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead')){ winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
-  if(winT>0){ winT++; if(winT>32*6+90) cleared=true; }
+  if(winT>0){ winT++; if(winT>360+30) cleared=true; }
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
       if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; } } }
@@ -142,7 +142,7 @@ function draw(){
     else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; drawFrame(an[Math.floor(c.st/8)%an.length],c.px,c.py); } }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
   if(ready){ const an=meta.anims.heroine_start; const k=Math.min(an.length-1,Math.floor((performance.now()-readyAt)/1000*7)); drawFrame(an[k],hero.px,hero.py); }   // start poses at 7 fps, hold the last one
-  else if(winT>0){ const an=meta.anims.heroine_win; drawFrame(an[Math.min(an.length-1,Math.floor(winT/6))],hero.px,hero.py); }   // win poses at 10 fps, hold the last
+  else if(winT>0){ const an=meta.anims.heroine_win; drawFrame(an[Math.min(an.length-1,Math.floor(winT/(360/an.length)))],hero.px,hero.py); }   // 32 poses spread over the 6 s of the laugh, exactly the video's own timing
   else if(deadT>0){ const an=meta.anims.heroine_death; drawFrame(an[Math.min(an.length-1,Math.floor(deadT/7))],hero.px,hero.py); }   // death sequence at ~8.5 fps, hold the collapsed pose
   else if(hurtT===0 || Math.floor(hurtT/4)%2===0) drawFrame(an[Math.floor(hero.t/(hero.moving?4:6))%an.length],hero.px,hero.py);
   // HUD: Bomberman-style top bar, hearts at the left
