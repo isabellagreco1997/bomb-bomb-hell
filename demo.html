@@ -62,6 +62,8 @@ function update(){
   for(let i=fires.length-1;i>=0;i--) if(fires[i].t>42) fires.splice(i,1);
   if(hurtT>0) hurtT--;
   if(hurtT===0 && inFire(hero.x,hero.y)) { hurtT=90; lastHurt=pickPlay(hurtClips,lastHurt); }
+  // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
+  if(hurtT===0 && candleState==='alive' && Math.abs(hero.px-candle.px)<T*0.6 && Math.abs(hero.py-candle.py)<T*0.6) { hurtT=90; lastHurt=pickPlay(hurtClips,lastHurt); }
   if(candleState==='alive' && inFire(candle.x,candle.y)) { candleState='dying'; candleT=0; lastKill=pickPlay(killClips,lastKill); }
   if(candleState==='dying') { candleT++; if(candleT>60) { candleState='dead'; } }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
