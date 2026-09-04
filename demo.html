@@ -14,7 +14,11 @@ const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(
 let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips);
 const sfx={}; for(const n of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${n}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
-function pickPlay(clips,last){ if(!clips.length) return last; let i; do{ i=Math.floor(Math.random()*clips.length); }while(i===last&&clips.length>1); const a=clips[i].cloneNode(); a.volume=0.8; a.play().catch(()=>{}); return i; }
+let currentVoice=null;
+// one voice at a time: a new line cuts off whatever she was saying (effects like tick/blast/steps are separate and untouched)
+function pickPlay(clips,last){ if(!clips.length) return last; let i; do{ i=Math.floor(Math.random()*clips.length); }while(i===last&&clips.length>1);
+  if(currentVoice){ currentVoice.pause(); currentVoice.currentTime=0; }
+  const a=clips[i].cloneNode(); a.volume=0.8; currentVoice=a; a.play().catch(()=>{}); return i; }
 // first bomb on the grid: a drop line; another bomb while one is already ticking: a multi-bomb line
 function sfxDrop(chained){ if(chained) lastMulti=pickPlay(multiClips,lastMulti); else lastClip=pickPlay(dropClips,lastClip); }
 // grid: 1 = pillar (every other cell, classic bomberman), 0 = floor
