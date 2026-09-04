@@ -11,7 +11,7 @@ let meta=null; fetch('assets/atlas.json').then(r=>r.json()).then(m=>meta=m);
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
-let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips);
+let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false;
 const sfx={}; for(const n of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${n}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
 function pickPlay(clips,last){ if(!clips.length) return last; let i; do{ i=Math.floor(Math.random()*clips.length); }while(i===last&&clips.length>1); const a=clips[i].cloneNode(); a.volume=0.8; a.play().catch(()=>{}); return i; }
@@ -89,11 +89,13 @@ function draw(){
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
 function step(now){
+  if(auto && !started) started=true;
   if(!meta||!atlas.complete){ last=now||performance.now(); requestAnimationFrame(step); return; }
   now=now||performance.now(); acc+=Math.min(100,now-last); last=now;
   let n=0; while(acc>=STEP && n<4){ update(); acc-=STEP; n++; }
   if(acc>=STEP) acc=0;
-  draw(); requestAnimationFrame(step);
+  draw(); if(!started){ ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,cv.width,cv.height); ctx.fillStyle='#f3d9a0'; ctx.font='bold 16px monospace'; ctx.textAlign='center'; ctx.fillText('PRESS ANY KEY', cv.width/2, cv.height/2); }
+  requestAnimationFrame(step);
 }
 // --- perf telemetry: every 3 s send fps + step cost + scale to the local server log (GET, shows as a 404 line) ---
 let _fr=0,_stepMs=0,_t0=performance.now(); const _step=step;
