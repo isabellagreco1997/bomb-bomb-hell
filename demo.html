@@ -54,6 +54,7 @@ const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
 const off=document.createElement('canvas'); off.width=128; off.height=128; const octx=off.getContext('2d'); octx.imageSmoothingEnabled=false;
 const V=Date.now(); const atlas=new Image(); atlas.src='assets/atlas.png?v='+V;
+document.fonts&&document.fonts.load('16px HellMenuPixel').catch(()=>{});
 let meta=null; fetch('assets/atlas.json?v='+V).then(r=>r.json()).then(m=>meta=m);
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
@@ -83,7 +84,7 @@ function genCrates(){ crates=[]; if(showcase){ for(let y=0;y<WR;y++){ crates.pus
   exitTile={x:a[0],y:a[1]}; powerTile={x:b[0],y:b[1],type:POWER,taken:false}; }
 applyLevel(1); genCrates();
 const crateAt=(x,y)=>crates[y]&&crates[y][x]>0;
-let worldT=0; const embers=[];   // ambient: lava pulse, statue eye flares, wall braziers, drifting embers
+let worldT=0; const embers=[]; const sparks=[];   // ambient: lava pulse, statue eye flares, wall braziers, drifting embers
 const hash=(x,y)=>((x*73856093)^(y*19349663))>>>0;
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
 
@@ -185,7 +186,9 @@ function botStep(){
   for(const k of ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown']) keys[k]=0;
   const D=dangerMap(); const hx=hero.x, hy=hero.y; const here=hx+','+hy;
   const walk=(x,y)=>!solid(x,y)&&!crateAt(x,y)&&!bombs.some(b=>b.x===x&&b.y===y);
-  const safe=(x,y)=>walk(x,y)&&!D.has(x+','+y)&&!enemyNear(x,y,1);
+  const safe=(x,y)=>walk(x,y)&&!D.has(x+','+y)&&!enemyNear(x,y,2);
+  const exitOpen=exitTile&&crates[exitTile.y][exitTile.x]===0;
+  const hitsExit=(bx,by)=>exitOpen&&blastCells(bx,by,RANGE).some(([x,y])=>x===exitTile.x&&y===exitTile.y);
   const go=(t)=>{ if(!t) return false; const [x,y]=t; keys[x>hx?'ArrowRight':x<hx?'ArrowLeft':y>hy?'ArrowDown':'ArrowUp']=1; return true; };
   // 1. standing in danger (or an enemy right next to us): run to the nearest safe tile
   if(D.has(here) || enemyNear(hx,hy,1)){ const prev=bfs(hx,hy,(x,y)=>walk(x,y)&&!fires.some(f=>f.cells.some(c=>c[0]===x&&c[1]===y))); let best=null,bd=99;
@@ -195,18 +198,18 @@ function botStep(){
   if(bombs.length){ return; }
   const prev=bfs(hx,hy,(x,y)=>walk(x,y)&&!D.has(x+','+y));
   const dist=(x,y)=>{ let k=x+','+y; if(!prev.has(k)) return 999; let dd=0; while(prev.get(k)!==null){ k=prev.get(k); dd++; } return dd; };
-  const canRetreatFrom=(bx,by)=>{ const cells=new Set(blastCells(bx,by,RANGE).map(c=>c[0]+','+c[1])); const p2=bfs(bx,by,(x,y)=>walk(x,y)&&!D.has(x+','+y)); for(const k of p2.keys()){ if(cells.has(k)) continue; const [x,y]=k.split(',').map(Number); let dd=0,kk=k; while(p2.get(kk)!==null){ kk=p2.get(kk); dd++; } if(dd<=RANGE+3 && !enemyNear(x,y,1)) return true; } return false; };
+  const canRetreatFrom=(bx,by)=>{ const cells=new Set(blastCells(bx,by,RANGE).map(c=>c[0]+','+c[1])); const p2=bfs(bx,by,(x,y)=>walk(x,y)&&!D.has(x+','+y)); for(const k of p2.keys()){ if(cells.has(k)) continue; const [x,y]=k.split(',').map(Number); let dd=0,kk=k; while(p2.get(kk)!==null){ kk=p2.get(kk); dd++; } if(dd<=RANGE+3 && !enemyNear(x,y,2)) return true; } return false; };
   const allDead=candles.every(c=>c.state==='dead');
   // 3. a revealed power-up: go get it
   if(powerTile&&!powerTile.taken&&crates[powerTile.y][powerTile.x]===0&&prev.has(powerTile.x+','+powerTile.y)){ if(go(firstStep(prev,powerTile.x,powerTile.y,hx,hy))) return; }
   // 4. all enemies dead and the exit is revealed: walk to it
   if(allDead && exitTile && crates[exitTile.y][exitTile.x]===0 && prev.has(exitTile.x+','+exitTile.y)){ if(hx===exitTile.x&&hy===exitTile.y) return; if(go(firstStep(prev,exitTile.x,exitTile.y,hx,hy))) return; }
   // 5. an enemy in our line of fire within range and we can get away: bomb it
-  for(const c of candles){ if(c.state!=='alive') continue; if(blastCells(hx,hy,RANGE).some(([x,y])=>x===c.x&&y===c.y) && canRetreatFrom(hx,hy)){ dropBomb(); return; } }
+  for(const c of candles){ if(c.state!=='alive') continue; if(blastCells(hx,hy,RANGE).some(([x,y])=>x===c.x&&y===c.y) && !hitsExit(hx,hy) && canRetreatFrom(hx,hy)){ dropBomb(); return; } }
   // 6. otherwise break the nearest crate (or approach the nearest enemy when no crates are left)
   let best=null,bd=999;
-  for(let y=1;y<WR-1;y++)for(let x=1;x<WC-1;x++){ if(!crateAt(x,y)) continue; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const ax=x+dx,ay=y+dy; if(!prev.has(ax+','+ay)) continue; const dd=dist(ax,ay); if(dd<bd){ bd=dd; best=[ax,ay]; } } }
-  if(best){ if(best[0]===hx&&best[1]===hy){ if(canRetreatFrom(hx,hy)) dropBomb(); else botState.stuck++; return; } go(firstStep(prev,best[0],best[1],hx,hy)); return; }
+  for(let y=1;y<WR-1;y++)for(let x=1;x<WC-1;x++){ if(!crateAt(x,y)) continue; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const ax=x+dx,ay=y+dy; if(!prev.has(ax+','+ay)||hitsExit(ax,ay)) continue; const dd=dist(ax,ay); if(dd<bd){ bd=dd; best=[ax,ay]; } } }
+  if(best){ if(best[0]===hx&&best[1]===hy){ if(!hitsExit(hx,hy) && canRetreatFrom(hx,hy)) dropBomb(); else { botState.stuck++; go(firstStep(prev,best[0],best[1],hx,hy)); } return; } go(firstStep(prev,best[0],best[1],hx,hy)); return; }
   const target=candles.find(c=>c.state==='alive'); if(target){ let tb=null,td=999; for(const k of prev.keys()){ const [x,y]=k.split(',').map(Number); const dd=Math.abs(x-target.x)+Math.abs(y-target.y); if(dd<td&&dd>=2){ td=dd; tb=[x,y]; } } if(tb&&!(tb[0]===hx&&tb[1]===hy)) go(firstStep(prev,tb[0],tb[1],hx,hy)); }
 }
 function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; if(bombs.length>=bombCap) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
@@ -237,6 +240,7 @@ function update(){
   // embers: spawn over floor tiles in view, drift up and fade
   if(embers.length<40 && Math.random()<0.5){ const x=cam.x+Math.random()*COLS*T, y=cam.y+Math.random()*ROWS*T; const tx=Math.floor(x/T), ty=Math.floor(y/T); if(!solid(tx,ty)) embers.push({x,y,vy:-(0.15+Math.random()*0.25),vx:(Math.random()-0.5)*0.15,life:90+Math.random()*60,t:0}); }
   for(let i=embers.length-1;i>=0;i--){ const e=embers[i]; e.t++; e.x+=e.vx; e.y+=e.vy; if(e.t>e.life) embers.splice(i,1); }
+  for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t++; s.x+=s.vx; s.y+=s.vy; if(s.t>s.life) sparks.splice(i,1); }
   for(let y=0;y<WR;y++)for(let x=0;x<WC;x++){ const v=crates[y][x]; if(v<0){ const type=Math.floor(-v/100), left=(-v)%100-1; crates[y][x]= left<=0?0:-(type*100+left); } }
   for(let i=fires.length-1;i>=0;i--) if(fires[i].t>42) fires.splice(i,1);
   if(hurtT>0) hurtT--;
@@ -285,7 +289,7 @@ function draw(){
     const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],cx*T,cy*T,T,T);
     if(sconce){ const s=meta.frames[sconce]; ctx.drawImage(atlas,s[0],s[1],s[2],s[3],cx*T,cy*T,T,T); }
     if(exitTile&&cx===exitTile.x&&cy===exitTile.y&&crates[cy][cx]===0){ const g=meta.frames['tile_exit']; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T);
-      const pulse=0.35+0.25*Math.sin(worldT/9); ctx.fillStyle=`rgba(255,80,220,${pulse.toFixed(2)})`; ctx.globalCompositeOperation='lighter'; ctx.beginPath(); ctx.arc(cx*T+T/2,cy*T+T/2,T*0.42,0,6.3); ctx.fill(); ctx.globalCompositeOperation='source-over'; }   // the portal breathes
+      if(worldT%3===0 && sparks.length<60) sparks.push({x:cx*T+8+Math.random()*(T-16), y:cy*T+10+Math.random()*(T-14), vx:(Math.random()-0.5)*0.4, vy:-(0.3+Math.random()*0.6), t:0, life:40+Math.random()*40, c:['#ffffff','#ffd6f5','#ff8de0','#ffe9a0'][Math.floor(Math.random()*4)]}); }   // the gate breathes out tiny bright sparks
     if(powerTile&&!powerTile.taken&&cx===powerTile.x&&cy===powerTile.y&&crates[cy][cx]===0){ const g=meta.frames['pw_'+powerTile.type];
       const bob=Math.round(Math.sin(worldT/12)*3), glow=0.25+0.2*Math.sin(worldT/7);
       const gr=ctx.createRadialGradient(cx*T+T/2,cy*T+T/2+4,4,cx*T+T/2,cy*T+T/2+4,T*0.6); gr.addColorStop(0,`rgba(255,200,90,${glow.toFixed(2)})`); gr.addColorStop(1,'rgba(255,120,40,0)'); ctx.fillStyle=gr; ctx.fillRect(cx*T-8,cy*T-8,T+16,T+16);   // warm glow pulsing under it
@@ -293,6 +297,7 @@ function draw(){
       if(worldT%40<6){ ctx.fillStyle='rgba(255,255,220,0.9)'; const sx=cx*T+10+(worldT%3)*12, sy=cy*T+8+bob+(worldT%2)*6; ctx.fillRect(sx,sy,2,2); ctx.fillRect(sx-2,sy,6,1); ctx.fillRect(sx,sy-2,1,6); } }   // a sparkle every so often
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
+  for(const s of sparks){ const a=s.t<8?s.t/8:(1-s.t/s.life); if(Math.floor(s.t/3)%2===0||a>0.7){ ctx.globalAlpha=Math.max(0,Math.min(1,a)); ctx.fillStyle=s.c; const sz=a>0.6?2:1; ctx.fillRect(Math.round(s.x),Math.round(s.y),sz,sz); } } ctx.globalAlpha=1;
   for(const b of bombs) drawBomb(b);
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
     for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
@@ -308,13 +313,13 @@ function draw(){
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle='#1a0a0e'; ctx.fillRect(0,0,cv.width,HUD); ctx.fillStyle='#c9a24a'; ctx.fillRect(0,HUD-3,cv.width,2); ctx.fillRect(0,0,cv.width,1);
   for(let i=0;i<Math.max(3,lives);i++){ const f=meta.frames[i<lives?'hud_heart_full':'hud_heart_empty']; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],12+i*28,8,f[2],f[3]); }
-  ctx.fillStyle='#f3d9a0'; ctx.font='bold 13px monospace'; ctx.textAlign='center'; ctx.fillText('LEVEL '+level, cv.width/2-60, 24); ctx.fillText('TIME '+String(Math.ceil(timeLeft/60)).padStart(3,'0'), cv.width/2+40, 24);
+  ctx.fillStyle='#ffffff'; ctx.font='13px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText('LEVEL '+level, cv.width/2-60, 24); ctx.fillText('TIME '+String(Math.ceil(timeLeft/60)).padStart(3,'0'), cv.width/2+40, 24);
   ctx.textAlign='right'; ctx.fillText(String(score).padStart(6,'0'), cv.width-12, 24);
-  ctx.textAlign='left'; ctx.font='bold 11px monospace'; ctx.fillText('B'+bombCap+' F'+RANGE+' S'+(hero.speed>2.4?'+':''), cv.width/2+110, 24);
-  if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 22px monospace'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
-  if(captionT>0&&caption){ ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,22); ctx.fillStyle='#f3d9a0'; ctx.font='bold 13px monospace'; ctx.textAlign='center'; ctx.fillText(caption, cv.width/2, HUD+16); }
-  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText(escaped?'YOU ESCAPED HELL':('LEVEL '+level+' CLEAR'), cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
-  if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
+  ctx.textAlign='left'; ctx.font='11px HellMenuPixel'; ctx.fillText('B'+bombCap+' F'+RANGE+' S'+(hero.speed>2.4?'+':''), cv.width/2+110, 24);
+  if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='22px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
+  if(captionT>0&&caption){ ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,22); ctx.fillStyle='#ffffff'; ctx.font='13px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText(caption, cv.width/2, HUD+16); }
+  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='18px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText(escaped?'YOU ESCAPED HELL':('LEVEL '+level+' CLEAR'), cv.width/2, cv.height/2); ctx.font='12px HellMenuPixel'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
+  if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='18px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='12px HellMenuPixel'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
 }
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
