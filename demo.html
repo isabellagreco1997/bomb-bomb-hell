@@ -59,7 +59,7 @@ let meta=null; fetch('assets/atlas.json?v='+V).then(r=>r.json()).then(m=>meta=m)
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
-let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips); let levelupClips=[], winningClips=[]; let lastLU=-1, lastWin=-1; loadClips('assets/audio/levelup.json',levelupClips); loadClips('assets/audio/winning.json',winningClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/enemyhurt.json',enemyHurtClips); loadClips('assets/audio/death.json',deathClips);
+let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips); let levelupClips=[], winningClips=[]; let lastLU=-1, lastWin=-1; let flashWhiteT=0; const sfxUpgrade=new Audio('assets/audio/upgrade.mp3'); sfxUpgrade.preload='auto'; loadClips('assets/audio/levelup.json',levelupClips); loadClips('assets/audio/winning.json',winningClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/enemyhurt.json',enemyHurtClips); loadClips('assets/audio/death.json',deathClips);
 const intro=new Audio('assets/audio/intro.mp3'); intro.preload='auto'; intro.volume=0.9;
 const music=new Audio('assets/audio/music.mp3'); music.preload='auto'; music.loop=true; music.volume=0.45;
 let ready=false;   // true between the first key press and the end of the intro jingle: 'READY?' on screen, no movement
@@ -234,7 +234,7 @@ function update(){
   worldT++;
   if(!ready && deadT===0 && winT===0 && !gameOver){ if(timeLeft>0) timeLeft--; else if(!timeSpawned){ timeSpawned=true; say('TIME UP: more enemies'); spawnAt(WC-2,WR-2,3); } }
   if(powerTile && !powerTile.taken && crates[powerTile.y][powerTile.x]===0 && hero.x===powerTile.x && hero.y===powerTile.y && Math.abs(hero.px-hero.x*T)<1 && Math.abs(hero.py-hero.y*T)<1){
-    powerTile.taken=true; score+=500; if(powerTile.type==='bomb') bombCap++; else if(powerTile.type==='fire') RANGE++; else hero.speed+=0.6; lastLU=pickPlay(levelupClips,lastLU); say({bomb:'extra bomb',fire:'fire range up',speed:'speed up'}[powerTile.type]); }
+    powerTile.taken=true; score+=500; if(powerTile.type==='bomb') bombCap++; else if(powerTile.type==='fire') RANGE++; else hero.speed+=0.6; flashWhiteT=20; const u=sfxUpgrade.cloneNode(); u.volume=0.8; u.play().catch(()=>{}); lastLU=pickPlay(levelupClips,lastLU); say({bomb:'extra bomb',fire:'fire range up',speed:'speed up'}[powerTile.type]); }
   if(captionT>0) captionT--;
   if(sc && !ready && deadT===0 && !gameOver){ if(sc.wait>0){ sc.wait--; } else if(sc.i<SC_STEPS.length){ const [w,fn]=SC_STEPS[sc.i++]; fn(); sc.wait=w; } }
   // embers: spawn over floor tiles in view, drift up and fade
@@ -243,7 +243,7 @@ function update(){
   for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t++; s.x+=s.vx; s.y+=s.vy; if(s.t>s.life) sparks.splice(i,1); }
   for(let y=0;y<WR;y++)for(let x=0;x<WC;x++){ const v=crates[y][x]; if(v<0){ const type=Math.floor(-v/100), left=(-v)%100-1; crates[y][x]= left<=0?0:-(type*100+left); } }
   for(let i=fires.length-1;i>=0;i--) if(fires[i].t>42) fires.splice(i,1);
-  if(hurtT>0) hurtT--;
+  if(hurtT>0) hurtT--; if(flashWhiteT>0) flashWhiteT--;
   if(deadT===0 && hurtT===0 && inFire(hero.x,hero.y)) { hit('fire'); }
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
@@ -291,8 +291,8 @@ function draw(){
     if(exitTile&&cx===exitTile.x&&cy===exitTile.y&&crates[cy][cx]===0){ const g=meta.frames['tile_exit']; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T);
       if(worldT%3===0 && sparks.length<60) sparks.push({x:cx*T+8+Math.random()*(T-16), y:cy*T+10+Math.random()*(T-14), vx:(Math.random()-0.5)*0.4, vy:-(0.3+Math.random()*0.6), t:0, life:40+Math.random()*40, c:['#ffffff','#ffd6f5','#ff8de0','#ffe9a0'][Math.floor(Math.random()*4)]}); }   // the gate breathes out tiny bright sparks
     if(powerTile&&!powerTile.taken&&cx===powerTile.x&&cy===powerTile.y&&crates[cy][cx]===0){ const g=meta.frames['pw_'+powerTile.type];
-      const bob=Math.round(Math.sin(worldT/12)*3), glow=0.25+0.2*Math.sin(worldT/7);
-      const gr=ctx.createRadialGradient(cx*T+T/2,cy*T+T/2+4,4,cx*T+T/2,cy*T+T/2+4,T*0.6); gr.addColorStop(0,`rgba(255,200,90,${glow.toFixed(2)})`); gr.addColorStop(1,'rgba(255,120,40,0)'); ctx.fillStyle=gr; ctx.fillRect(cx*T-8,cy*T-8,T+16,T+16);   // warm glow pulsing under it
+      const bob=Math.round(Math.sin(worldT/12)*3);
+      if(worldT%4===0 && sparks.length<80) sparks.push({x:cx*T+10+Math.random()*(T-20), y:cy*T+T-6+bob, vx:(Math.random()-0.5)*0.3, vy:-(0.25+Math.random()*0.5), t:0, life:35+Math.random()*35, c:['#ffffff','#ffe9a0','#ffc46a','#fff6d0'][Math.floor(Math.random()*4)]});   // warm pixel sparks rising from the item
       ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T+bob,T,T);                                                                                                    // the item floats
       if(worldT%40<6){ ctx.fillStyle='rgba(255,255,220,0.9)'; const sx=cx*T+10+(worldT%3)*12, sy=cy*T+8+bob+(worldT%2)*6; ctx.fillRect(sx,sy,2,2); ctx.fillRect(sx-2,sy,6,1); ctx.fillRect(sx,sy-2,1,6); } }   // a sparkle every so often
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
@@ -308,7 +308,9 @@ function draw(){
   if(ready){ const an=meta.anims.heroine_start; const k=Math.min(an.length-1,Math.floor((performance.now()-readyAt)/1000*7)); drawFrame(an[k],hero.px,hero.py); }   // start poses at 7 fps, hold the last one
   else if(winT>0){ const an=meta.anims.heroine_win; drawFrame(an[Math.min(an.length-1,Math.floor(winT/(360/an.length)))],hero.px,hero.py); }   // 32 poses spread over the 6 s of the laugh, exactly the video's own timing
   else if(deadT>0){ const an=meta.anims.heroine_death; drawFrame(an[Math.min(an.length-1,Math.floor(deadT/7))],hero.px,hero.py); }   // death sequence at ~8.5 fps, hold the collapsed pose
-  else if(hurtT===0 || Math.floor(hurtT/4)%2===0) drawFrame(an[Math.floor(hero.t/(hero.moving?4:6))%an.length],hero.px,hero.py);
+  else if(hurtT===0 || Math.floor(hurtT/4)%2===0){ const name=an[Math.floor(hero.t/(hero.moving?4:6))%an.length];
+    if(flashWhiteT>0 && Math.floor(flashWhiteT/3)%2===0){ const f=meta.frames[name]; octx.clearRect(0,0,128,128); octx.globalCompositeOperation='source-over'; octx.drawImage(atlas,f[0],f[1],f[2],f[3],0,0,f[2],f[3]); octx.globalCompositeOperation='source-atop'; octx.fillStyle='rgba(255,255,255,0.85)'; octx.fillRect(0,0,f[2],f[3]); ctx.drawImage(off,0,0,f[2],f[3],Math.round(hero.px)-((f[2]-T)>>1),Math.round(hero.py)-(f[3]-T),f[2],f[3]); }
+    else drawFrame(name,hero.px,hero.py); }
   // HUD: Bomberman-style top bar, hearts at the left
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle='#1a0a0e'; ctx.fillRect(0,0,cv.width,HUD); ctx.fillStyle='#c9a24a'; ctx.fillRect(0,HUD-3,cv.width,2); ctx.fillRect(0,0,cv.width,1);
