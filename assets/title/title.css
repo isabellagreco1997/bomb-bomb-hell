@@ -81,6 +81,3 @@
 #title.loading .title-sprite{visibility:hidden}
 
 #howtoplay,#howtoplay p,#howtoplay kbd{text-transform:uppercase}
-
-.sound-hint{top:auto;bottom:22%;font-size:.55em;opacity:.85;animation:press-blink 1.6s steps(1) infinite}
-.sound-hint[hidden]{display:none}
