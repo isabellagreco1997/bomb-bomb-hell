@@ -1661,6 +1661,24 @@
    1932,
    24,
    24
+  ],
+  "flame_0": [
+   48,
+   1932,
+   16,
+   16
+  ],
+  "flame_1": [
+   64,
+   1932,
+   16,
+   16
+  ],
+  "flame_2": [
+   80,
+   1932,
+   16,
+   16
   ]
  },
  "anims": {
@@ -1923,6 +1941,11 @@
    "heroine_start_29",
    "heroine_start_30",
    "heroine_start_31"
+  ],
+  "flame": [
+   "flame_0",
+   "flame_1",
+   "flame_2"
   ],
   "bomb_tick": [
    "bomb_tick_0",

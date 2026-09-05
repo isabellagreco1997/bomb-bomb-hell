@@ -40,15 +40,15 @@
 const showcase=new URLSearchParams(location.search).get('showcase');   // scripted sound showcase mode
 const bot=new URLSearchParams(location.search).get('bot');             // bot=1: plays by itself through the normal inputs
 // level state must exist before the world is generated below
-const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb';
+const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb', SPIT=0; const flames=[];
 let RANGE=2, bombCap=1, level=1, score=0, timeLeft=200*60, timeSpawned=false, exitTile=null, powerTile=null, escaped=false;
 const LEVELS=[null,
-  {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb',time:200},
-  {w:15,h:13,enemies:2,crates:0.30,speed:1.1,power:'fire',time:240},
-  {w:19,h:13,enemies:3,crates:0.35,speed:1.2,power:'speed',time:300},
-  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb',time:480},
-  {w:27,h:17,enemies:6,crates:0.36,speed:1.5,power:'fire',time:600}];
-function applyLevel(n){ const L=LEVELS[n]; WC=L.w; WR=L.h; ENEMIES=L.enemies; CRATE_RATE=L.crates; ENEMY_SPEED=L.speed; POWER=L.power; timeLeft=L.time*60; timeSpawned=false; }
+  {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb',time:200,spit:0},
+  {w:15,h:13,enemies:2,crates:0.30,speed:1.1,power:'fire',time:240,spit:210},
+  {w:19,h:13,enemies:3,crates:0.35,speed:1.2,power:'speed',time:300,spit:180},
+  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb',time:480,spit:150},
+  {w:27,h:17,enemies:6,crates:0.36,speed:1.5,power:'fire',time:600,spit:120}];
+function applyLevel(n){ const L=LEVELS[n]; WC=L.w; WR=L.h; ENEMIES=L.enemies; CRATE_RATE=L.crates; ENEMY_SPEED=L.speed; POWER=L.power; SPIT=L.spit||0; timeLeft=L.time*60; timeSpawned=false; }
 const T=48, COLS=13, ROWS=11; let WC=13, WR=11; const SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
@@ -150,7 +150,7 @@ function hit(src){
   if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); const g=new Audio('assets/audio/gameover.mp3'); g.volume=0.8; g.play().catch(()=>{}); return; }   // game over sound starts with the dying animation
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
-function resetGame(){ applyLevel(level); genCrates(); lives=Math.min(5,lives); deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
+function resetGame(){ applyLevel(level); genCrates(); flames.length=0; lives=Math.min(5,lives); deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
 const SC_STEPS=[   // [how many frames this step lasts, what it does]
  [60,()=>{ say('footsteps'); keys.ArrowRight=1; }],
  [20,()=>{ keys.ArrowRight=0; }],
@@ -177,7 +177,7 @@ const SC_STEPS=[   // [how many frames this step lasts, what it does]
 // ---------- BOT ----------
 const botState={mode:'hunt',retreatT:0,stuck:0};
 function blastCells(bx,by,range){ const out=[[bx,by]]; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) for(let r=1;r<=range;r++){ const x=bx+dx*r,y=by+dy*r; if(solid(x,y)) break; out.push([x,y]); if(crateAt(x,y)) break; } return out; }
-function dangerMap(){ const D=new Set(); for(const b of bombs) for(const [x,y] of blastCells(b.x,b.y,RANGE)) D.add(x+','+y); for(const f of fires) for(const [x,y] of f.cells) D.add(x+','+y); return D; }
+function dangerMap(){ const D=new Set(); for(const b of bombs) for(const [x,y] of blastCells(b.x,b.y,RANGE)) D.add(x+','+y); for(const f of fires) for(const [x,y] of f.cells) D.add(x+','+y); for(const fl of flames){ for(let k=0;k<3;k++) D.add(Math.floor((fl.x+fl.dx*16*k)/T)+','+Math.floor((fl.y+fl.dy*16*k)/T)); } return D; }
 function enemyNear(x,y,dist){ return candles.some(c=>c.state==='alive' && Math.abs(c.x-x)+Math.abs(c.y-y)<=dist); }
 function bfs(sx,sy,passable){ const prev=new Map(); const q=[[sx,sy]]; prev.set(sx+','+sy,null);
   while(q.length){ const [x,y]=q.shift(); for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx,ny=y+dy,k=nx+','+ny; if(prev.has(k)||!passable(nx,ny)) continue; prev.set(k,x+','+y); q.push([nx,ny]); } } return prev; }
@@ -275,6 +275,18 @@ function update(){
       if(blocked(c.x+dx,c.y+dy)||Math.random()<1/6){ const opts=Object.keys(DIRS).filter(k=>!blocked(c.x+DIRS[k][0],c.y+DIRS[k][1])); if(opts.length) c.dir=opts[Math.floor(Math.random()*opts.length)]; [dx,dy]=DIRS[c.dir]; }
       if(!blocked(c.x+dx,c.y+dy)){ c.x+=dx; c.y+=dy; } }
     c.px+=Math.sign(c.x*T-c.px)*Math.min(c.speed,Math.abs(c.x*T-c.px)); c.py+=Math.sign(c.y*T-c.py)*Math.min(c.speed,Math.abs(c.y*T-c.py)); }
+  // ghosts spit little flames when she is in line within 5 tiles and nothing is between (from level 2)
+  if(SPIT>0 && !ready && deadT===0 && winT===0) for(const c of candles){ if(c.state!=='alive') continue; c.cool=(c.cool||0)-1; c.tele=(c.tele||0);
+    if(c.tele>0){ c.tele--; if(c.tele===0){ flames.push({x:c.px+T/2,y:c.py+T/2-6,dx:c.aim[0]*2.6,dy:c.aim[1]*2.6,t:0}); } continue; }
+    if(c.cool>0) continue;
+    const sameRow=c.y===hero.y, sameCol=c.x===hero.x; if(!sameRow&&!sameCol) continue;
+    const dx=Math.sign(hero.x-c.x), dy=Math.sign(hero.y-c.y), dist=Math.abs(hero.x-c.x)+Math.abs(hero.y-c.y); if(dist===0||dist>5) continue;
+    let clear=true; for(let i=1;i<dist;i++){ const x=c.x+dx*i,y=c.y+dy*i; if(solid(x,y)||crateAt(x,y)||bombs.some(b=>b.x===x&&b.y===y)){ clear=false; break; } }
+    if(!clear) continue;
+    c.aim=[dx,dy]; c.tele=14; c.cool=SPIT; }
+  for(let i=flames.length-1;i>=0;i--){ const f=flames[i]; f.t++; f.x+=f.dx; f.y+=f.dy; const tx=Math.floor(f.x/T), ty=Math.floor(f.y/T);
+    if(f.t>240||solid(tx,ty)||crateAt(tx,ty)||bombs.some(b=>b.x===tx&&b.y===ty)){ flames.splice(i,1); continue; }
+    if(deadT===0&&hurtT===0&&Math.abs(f.x-(hero.px+T/2))<T*0.45&&Math.abs(f.y-(hero.py+T/2))<T*0.45){ flames.splice(i,1); hit('enemy'); } }
   // camera: centred on her, clamped to the world
   cam.x=Math.max(0,Math.min(WC*T-COLS*T, hero.px+T/2-COLS*T/2)); cam.y=Math.max(0,Math.min(WR*T-ROWS*T, hero.py+T/2-ROWS*T/2));
 }
@@ -298,12 +310,16 @@ function draw(){
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
   for(const s of sparks){ const a=s.t<8?s.t/8:(1-s.t/s.life); if(Math.floor(s.t/3)%2===0||a>0.7){ ctx.globalAlpha=Math.max(0,Math.min(1,a)); ctx.fillStyle=s.c; const sz=a>0.6?2:1; ctx.fillRect(Math.round(s.x),Math.round(s.y),sz,sz); } } ctx.globalAlpha=1;
+  for(const f of flames){ const g=meta.frames[meta.anims.flame[Math.floor(f.t/4)%3]]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],Math.round(f.x)-8,Math.round(f.y)-8+Math.round(Math.sin(f.t/3)),16,16); }
   for(const b of bombs) drawBomb(b);
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
     for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
   for(const c of candles){ if(c.state==='dead') continue; const bob=Math.round(Math.sin(c.t/11)*3);
-    if(c.state==='alive'){ if(c.flash>0 && Math.floor(c.flash/5)%2===0){ const an=meta.anims.candle_hurt; drawFrame(an[Math.floor(c.flash/10)%an.length],c.px,c.py+bob); } else drawFrame(meta.anims.candle_flicker[Math.floor(c.t/5)%10],c.px,c.py+bob); }
-    else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; drawFrame(an[Math.floor(c.st/8)%an.length],c.px,c.py); } }
+    if(c.state==='alive'){ const fl=meta.anims.candle_flicker; const idle=fl[Math.floor(c.t/10)%fl.length];
+      if(c.flash>0 && Math.floor(c.flash/5)%2===0){ const an=meta.anims.candle_hurt; drawFrame(an[Math.floor(c.flash/10)%an.length],c.px,c.py+bob); }
+      else if(c.tele>0){ const f=meta.frames[idle]; octx.clearRect(0,0,128,128); octx.globalCompositeOperation='source-over'; octx.drawImage(atlas,f[0],f[1],f[2],f[3],0,0,f[2],f[3]); octx.globalCompositeOperation='source-atop'; octx.fillStyle='rgba(255,240,200,0.55)'; octx.fillRect(0,0,f[2],f[3]); ctx.drawImage(off,0,0,f[2],f[3],Math.round(c.px)-((f[2]-T)>>1),Math.round(c.py+bob)-(f[3]-T),f[2],f[3]); }   // the tell: it brightens before it spits
+      else drawFrame(idle,c.px,c.py+bob); }
+    else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; const k=c.st<24?Math.floor(c.st/8)%an.length:Math.min(an.length-1,Math.floor((c.st-24)/9)); drawFrame(an[k],c.px,c.py); } }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
   if(ready){ const an=meta.anims.heroine_start; const k=Math.min(an.length-1,Math.floor((performance.now()-readyAt)/1000*7)); drawFrame(an[k],hero.px,hero.py); }   // start poses at 7 fps, hold the last one
   else if(winT>0){ const an=meta.anims.heroine_win; drawFrame(an[Math.min(an.length-1,Math.floor(winT/(360/an.length)))],hero.px,hero.py); }   // 32 poses spread over the 6 s of the laugh, exactly the video's own timing
