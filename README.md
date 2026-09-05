@@ -48,7 +48,6 @@ Some ideas to hand your agent: a second enemy type from the enemies sheet, break
 - **Art:** sprite sheets generated from prompts, then cut, keyed and quantised with [sprite-forge](https://github.com/isabellagreco1997/sprite-forge). Walk cycles, idle, death and win animations were sampled from short generated videos of the character, because generated sprite sheets do not actually animate. The title screen art was redrawn by hand as a layered pixel scene.
 - **Voice and sound effects:** generated with ElevenLabs (voice lines and the sound-effects tool), then sped up 1.3x with the pitch so she sounds like herself but tiny.
 - **Music:** generated with Suno.
-- **Process:** the build was recorded turn by turn with [devlog-recorder](https://github.com/isabellagreco1997/devlog-recorder), and the video about it uses [script-to-video](https://github.com/isabellagreco1997/script-to-video).
 
 ## Run it locally
 
