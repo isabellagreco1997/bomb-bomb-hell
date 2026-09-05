@@ -1,0 +1,82 @@
+@font-face{font-family:HellMenuPixel;src:url('fonts/hell-menu-pixel.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+#title{position:fixed;inset:0;display:grid;place-items:center;background:#10030c;overflow:hidden;z-index:10;--ui-pixel:2px}
+#title[hidden]{display:none}
+#titlebox{position:absolute;width:min(100vw,125vh);aspect-ratio:5/4;overflow:hidden;container-type:inline-size;background:#180411;isolation:isolate}
+.title-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none;image-rendering:pixelated}
+.skyline{z-index:0}
+.heroine-entry{z-index:2;left:6.55%;top:-3.45%;width:71.4%;height:71.4%;transform-origin:25% 65%}
+.heroine{transform-origin:25% 66%}
+.ghost-entry{z-index:5;left:-2.21025%;top:-4.97375%;width:92.9475%;height:92.9475%;transform-origin:86% 50%}
+.ghost{transform-origin:86% 50%}
+.logo-entry{z-index:4;left:3.6%;top:4%;width:80%;height:80%;transform-origin:58% 35%}
+.logo{inset:0;width:100%;height:100%}
+/* Native buttons with an original square-outline font, aligned to whole pixels. */
+.title-menu{position:absolute;z-index:6;left:25%;top:64%;width:50%;display:flex;flex-direction:column;align-items:center;gap:var(--ui-pixel)}
+.menu-item{position:relative;box-sizing:border-box;min-height:calc(9 * var(--ui-pixel));border:0;background:transparent;color:#e5bd98;font:400 calc(8 * var(--ui-pixel))/calc(9 * var(--ui-pixel)) HellMenuPixel,monospace;letter-spacing:var(--ui-pixel);padding:0;text-align:center;cursor:pointer;text-shadow:var(--ui-pixel) var(--ui-pixel) #16040c;white-space:nowrap}
+.menu-item.selected,.menu-item:hover,.menu-item:focus-visible{color:#fff0d3;outline:none}
+.menu-item::before{content:'';position:absolute;left:calc(-9 * var(--ui-pixel));top:0;width:calc(8 * var(--ui-pixel));color:#fa6c7d}
+.menu-item.selected::before{content:'>';animation:cursor-blink 1s steps(1,end) infinite}
+.menu-item:focus-visible{text-decoration:underline;text-decoration-thickness:var(--ui-pixel);text-underline-offset:calc(3 * var(--ui-pixel))}
+.start-hint,.title-credit{position:absolute;z-index:6;left:25%;width:50%;margin:0;text-align:center;font:400 calc(8 * var(--ui-pixel))/calc(9 * var(--ui-pixel)) HellMenuPixel,monospace;letter-spacing:var(--ui-pixel);text-shadow:var(--ui-pixel) var(--ui-pixel) #140208;white-space:nowrap}
+.start-hint{top:calc(64% + 21 * var(--ui-pixel));color:#c99883}
+.title-credit{top:calc(64% + 39 * var(--ui-pixel));color:#fff0d3}
+@keyframes cursor-blink{0%,74%{visibility:visible}75%,100%{visibility:hidden}}
+#howtoplay{box-sizing:border-box;width:72%;max-width:660px;padding:5%;border:3px solid #dfaa51;background:#250917;color:#ffe8bb;text-align:center;font:16px/1.6 monospace;box-shadow:0 0 0 5px #5c182b,0 0 60px #000}
+#howtoplay::backdrop{background:#0d0206df}
+#howtoplay h2{color:#ff8eae;letter-spacing:.1em;font-size:1.2em}
+#howtoplay kbd{display:inline-block;color:#fff5d4;padding:2px 8px;border:1px solid #b87256;background:#3d1225}
+#howtoplay .help-copy{font-size:.85em}
+#close-help{background:#6b1838;color:#ffe8bb;border:2px solid #dda755;padding:12px 18px;font:bold 14px monospace;cursor:pointer}
+#close-help:focus-visible{outline:3px solid #fff4c5;outline-offset:4px}
+#title.leaving .title-menu,#title.leaving .start-hint,#title.leaving .title-credit{opacity:0;animation:none}
+#title.leaving #titlebox{transition:transform .62s ease-in,opacity .62s ease-in;transform:scale(1.07);opacity:0}
+#title.confirming #play{color:#fff0d3;animation:start-confirm .2s steps(1,end) 5}
+#title.confirming #play::before{animation:none;visibility:visible}
+#title.confirming .title-menu{pointer-events:none}
+@keyframes start-confirm{0%,49%{opacity:1}50%,100%{opacity:0}}
+.title-flash{position:absolute;inset:0;z-index:20;background:#fff;opacity:0;pointer-events:none}
+#title.title-celebration .title-flash{animation:title-white-flash .45s ease-out both}
+@keyframes title-white-flash{from{opacity:1}to{opacity:0}}
+#title.still *,#title.still .heroine,#title.still .ghost{animation:none!important;transition:none!important}
+@keyframes press-blink{0%,65%{opacity:1}66%,100%{opacity:.25}}
+@media(max-width:600px){#howtoplay{width:90%;font-size:13px}}
+@media(prefers-reduced-motion:reduce){#title:not(.motion-enabled) *{animation:none!important;transition:none!important}}
+
+/* A 4.2-second opening: skyline, heroine, ghost, fuse, title impact, menu. */
+#title.loading .heroine-entry,#title.loading .ghost-entry,#title.loading .logo-entry,#title.loading .title-menu,#title.loading .start-hint,#title.loading .title-credit{visibility:hidden}
+#title.opening .skyline{animation:skyline-reveal 1.2s ease-out both}
+#title.opening .heroine-entry{animation:hero-tumble 1.3s .4s cubic-bezier(.18,.7,.3,1) both}
+#title.opening .heroine,#title.opening .ghost{animation:none}
+#title.opening .ghost-entry{animation:ghost-swoop 1.3s 1s cubic-bezier(.18,.7,.3,1) both}
+#title.opening .logo-entry{animation:title-impact .85s 2.15s cubic-bezier(.16,.75,.25,1) both}
+#title.opening .title-menu{animation:menu-rise .55s 3.05s ease-out both}
+#title.opening .start-hint{animation:hint-reveal .5s 3.65s both}
+#title.opening .title-credit{animation:hint-reveal .5s 3.65s both}
+#title.opening #titlebox{animation:impact-shake .34s 2.5s linear}
+.title-impact{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 35%,#ffb74870,transparent 58%)}
+.title-impact span{position:absolute;left:50%;top:34%;width:1%;height:1%;background:#ffd077;box-shadow:0 0 18px #fe415e;transform:rotate(45deg)}
+.title-impact span:nth-child(1){--dx:-34cqw;--dy:-15cqw}
+.title-impact span:nth-child(2){--dx:30cqw;--dy:-13cqw}
+.title-impact span:nth-child(3){--dx:28cqw;--dy:23cqw}
+.title-impact span:nth-child(4){--dx:-30cqw;--dy:26cqw}
+#title.opening .title-impact{animation:impact-glow .8s 2.32s ease-out both}
+#title.opening .title-impact span{animation:impact-streak .7s 2.35s ease-out both}
+.fuse-glint{position:absolute;left:30%;top:35%;width:2.2%;aspect-ratio:1;z-index:5;pointer-events:none;background:#fff0ab;clip-path:polygon(50% 0,60% 36%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);opacity:0}
+#title.opening .fuse-glint{animation:fuse-catch .6s 1.65s ease-out both}
+#title.still .title-impact,#title.still .fuse-glint{display:none}
+@keyframes skyline-reveal{from{opacity:0;transform:scale(1.08) translateY(3%)}to{opacity:1;transform:none}}
+@keyframes hero-tumble{0%{opacity:0;transform:translate(-10%,-85%) rotate(-24deg)}20%{opacity:1}70%{transform:translate(1%,3%) rotate(5deg)}86%{transform:translate(0,-1.5%) rotate(-2deg)}100%{opacity:1;transform:none}}
+@keyframes ghost-swoop{0%{opacity:0;transform:translate(25%,-25%) rotate(18deg)}20%{opacity:1}100%{opacity:1;transform:translate(0,0) rotate(0deg)}}
+@keyframes title-impact{0%{opacity:0;transform:scale(2.1) rotate(-9deg)}42%{opacity:1;transform:scale(.91) rotate(2deg)}62%{transform:scale(1.04) rotate(-1deg)}100%{opacity:1;transform:none}}
+@keyframes menu-rise{from{opacity:0;transform:translateY(8%)}70%{opacity:1;transform:translateY(-.6%)}to{opacity:1;transform:none}}
+@keyframes hint-reveal{from{opacity:0}to{opacity:1}}
+@keyframes impact-shake{0%,100%{transform:none}20%{transform:translate(-.45%,.3%)}40%{transform:translate(.35%,-.2%)}60%{transform:translate(-.2%,.1%)}80%{transform:translate(.1%,0)}}
+@keyframes impact-glow{0%{opacity:0}15%{opacity:.8}100%{opacity:0}}
+@keyframes impact-streak{from{transform:translate(0,0) rotate(45deg) scale(2)}to{transform:translate(var(--dx),var(--dy)) rotate(135deg) scale(0)}}
+@keyframes fuse-catch{0%{opacity:0;transform:scale(.2) rotate(0)}40%{opacity:1;transform:scale(2.5) rotate(45deg)}100%{opacity:0;transform:scale(.3) rotate(90deg)}}
+
+/* Idle animation is authored sprite frames; CSS only choreographs the entrance. */
+.title-sprite{visibility:hidden}
+#title.sprites-ready .title-sprite{visibility:visible}
+#title.sprites-ready .sprite-fallback{visibility:hidden}
+#title.loading .title-sprite{visibility:hidden}

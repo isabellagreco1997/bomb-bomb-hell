@@ -1,0 +1,16 @@
+{
+  "file": "logo-warm-flame-atlas.png",
+  "frames": 145,
+  "fps": 24,
+  "columns": 10,
+  "size": [
+    154,
+    178
+  ],
+  "origin": [
+    126,
+    7
+  ],
+  "playback": "ping-pong",
+  "source": "logo.mp4"
+}

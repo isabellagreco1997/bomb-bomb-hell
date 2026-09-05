@@ -1,0 +1,17 @@
+{
+  "file": "heroine-two-hands-atlas.png",
+  "frames": 145,
+  "fps": 24,
+  "columns": 10,
+  "size": [
+    137,
+    161
+  ],
+  "origin": [
+    2,
+    108
+  ],
+  "playback": "ping-pong",
+  "source": "animation-girl.mp4",
+  "uniqueFrames": 145
+}

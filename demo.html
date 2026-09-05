@@ -1,19 +1,54 @@
-<!doctype html><html><head><meta charset="utf-8"><title>bomberman phase 1 demo</title>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bomb Bomb Hell!</title>
+<link rel="stylesheet" href="assets/title/title.css">
 <style>html,body{margin:0;background:#0d0206;height:100%;display:flex;align-items:center;justify-content:center}canvas{image-rendering:pixelated;image-rendering:crisp-edges}</style></head>
 <body>
-<div id="title" style="position:fixed;inset:0;background:#0d0206;display:flex;align-items:center;justify-content:center;overflow:hidden">
-  <div id="titlebox" style="position:relative;aspect-ratio:738/402;width:min(100vw,calc(100vh*738/402))">
-    <video id="titlevid" src="assets/video/title.mp4" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated"></video>
-    <canvas id="titlefx" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
-    <!-- the PLAY button sits inside the empty gold frame the video draws at the bottom right -->
-    <button id="play" style="position:absolute;left:48.5%;top:75.5%;width:45.4%;height:23.5%;background:transparent;border:0;cursor:pointer;font:bold min(6vh,5vw) monospace;letter-spacing:6px;color:#f3d9a0;text-shadow:0 0 12px rgba(255,120,60,0.9),0 0 2px #000" onmouseover="this.style.color='#fff2c8'" onmouseout="this.style.color='#f3d9a0'">PLAY</button>
+<section id="title" class="loading" aria-label="Bomb Bomb Hell! title screen">
+  <audio id="character-entrance-sound" src="assets/title/audio/character-appear.mp3" preload="auto"></audio>
+  <audio id="ghost-entrance-sound" src="assets/title/audio/character-appear.mp3" preload="auto"></audio>
+  <audio id="logo-move-sound" src="assets/title/audio/logo-move.mp3" preload="auto"></audio>
+  <audio id="logo-land-sound" src="assets/title/audio/logo-land.mp3" preload="auto"></audio>
+  <audio id="title-ready-voice" src="assets/audio/title_ready_0.mp3" preload="auto"></audio>
+  <audio id="start-select-sound" src="assets/title/audio/start-select.mp3" preload="auto"></audio>
+  <audio id="menu-change-sound" src="assets/title/audio/menu-change.mp3" preload="auto"></audio>
+  <audio id="title-music" src="assets/title/audio/title-music-aac.m4a" preload="auto" loop></audio>
+  <div class="title-flash" aria-hidden="true"></div>
+  <div id="titlebox">
+    <img class="title-layer skyline" src="assets/title/sprites/skyline-grid250.png" alt="" draggable="false">
+    <div class="title-layer heroine-entry"><img class="title-layer heroine sprite-fallback" src="assets/title/sprites/heroine-two-hands-idle.png" alt="" draggable="false"><canvas class="title-layer heroine title-sprite" data-title-sprite="heroine" aria-hidden="true"></canvas></div>
+    <div class="title-layer ghost-entry"><img class="title-layer ghost sprite-fallback" src="assets/title/sprites/ghost-video-outline-v4-idle.png" alt="" draggable="false"><canvas class="title-layer ghost title-sprite" data-title-sprite="ghost" aria-hidden="true"></canvas></div>
+    <div class="title-layer logo-entry"><img class="title-layer logo sprite-fallback" src="assets/title/sprites/logo-warm-flame-idle.png" alt="Bomb Bomb Hell!" draggable="false"><canvas class="title-layer logo title-sprite" data-title-sprite="logo" aria-hidden="true"></canvas></div>
+    <div class="title-impact" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <div class="fuse-glint" aria-hidden="true"></div>
+    <nav class="title-menu" aria-label="Main menu">
+      <button id="play" class="menu-item selected" type="button" disabled>START GAME</button>
+      <button id="instructions" class="menu-item" type="button" disabled>HOW TO PLAY</button>
+    </nav>
+    <p class="start-hint">ENTER TO SELECT</p>
+    <p class="title-credit">LICENSED BY<br>ISA GRECO INC.</p>
+    <dialog id="howtoplay" aria-labelledby="help-heading">
+      <h2 id="help-heading">HOW TO PLAY</h2>
+      <p><kbd>↑ ↓ ← →</kbd> MOVE</p>
+      <p><kbd>E</kbd> DROP A BOMB</p>
+      <p class="help-copy">Break the crates. Catch the candle ghosts in your blast.<br>Get out of the way before your own bomb goes off!</p>
+      <button id="close-help" type="button">BACK TO MENU</button>
+    </dialog>
   </div>
-</div>
+</section>
 <canvas id="c" hidden></canvas>
 <div id="flash" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30;transition:opacity .9s ease-out"></div>
 <script>
 const showcase=new URLSearchParams(location.search).get('showcase');   // scripted sound showcase mode
-const T=48, COLS=13, ROWS=11, WC=21, WR=13, SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
+// level state must exist before the world is generated below
+const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb';
+let RANGE=2, bombCap=1, level=1, score=0, timeLeft=200*60, timeSpawned=false, exitTile=null, powerTile=null, escaped=false;
+const LEVELS=[null,
+  {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb'},
+  {w:15,h:13,enemies:2,crates:0.30,speed:1.1,power:'fire'},
+  {w:19,h:13,enemies:3,crates:0.35,speed:1.2,power:'speed'},
+  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb'},
+  {w:27,h:17,enemies:6,crates:0.40,speed:1.5,power:'fire'}];
+function applyLevel(n){ const L=LEVELS[n]; WC=L.w; WR=L.h; ENEMIES=L.enemies; CRATE_RATE=L.crates; ENEMY_SPEED=L.speed; POWER=L.power; timeLeft=200*60; timeSpawned=false; }
+const T=48, COLS=13, ROWS=11; let WC=13, WR=11; const SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
 const off=document.createElement('canvas'); off.width=128; off.height=128; const octx=off.getContext('2d'); octx.imageSmoothingEnabled=false;
@@ -39,50 +74,53 @@ function sfxDrop(chained){ if(chained) lastMulti=pickPlay(multiClips,lastMulti);
 const solid=(cx,cy)=>cx<=0||cy<=0||cx>=WC-1||cy>=WR-1||(cx%2==0&&cy%2==0);
 const cam={x:0,y:0};
 let crates=[];   // crates[y][x]: 0 none, 1/2 crate type, negative = breaking (frames left, encoded as -n)
-function genCrates(){ crates=[]; if(showcase){ for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++) crates[y].push((!solid(x,y)&&y>=4&&Math.random()<0.4)?1+Math.floor(Math.random()*2):0); } return; } for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++){ let v=0; if(!solid(x,y) && (Math.abs(x-1)+Math.abs(y-1))>3 && Math.random()<0.38) v=1+Math.floor(Math.random()*2); crates[y].push(v);} } }
-genCrates();
+function genCrates(){ crates=[]; if(showcase){ for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++) crates[y].push((!solid(x,y)&&y>=4&&Math.random()<0.4)?1+Math.floor(Math.random()*2):0); } return; } for(let y=0;y<WR;y++){ crates.push([]); for(let x=0;x<WC;x++){ let v=0; if(!solid(x,y) && (Math.abs(x-1)+Math.abs(y-1))>3 && Math.random()<CRATE_RATE) v=1+Math.floor(Math.random()*2); crates[y].push(v);} }
+  // the exit and the level's power-up hide under two crates, far from her start
+  const spots=[]; for(let y=0;y<WR;y++)for(let x=0;x<WC;x++) if(crates[y][x]>0 && (Math.abs(x-1)+Math.abs(y-1))>=6) spots.push([x,y]);
+  if(spots.length<2){ for(let y=1;y<WR-1;y++)for(let x=1;x<WC-1;x++) if(!solid(x,y)&&(Math.abs(x-1)+Math.abs(y-1))>=6&&crates[y][x]===0){ crates[y][x]=1; spots.push([x,y]); if(spots.length>=2) break; } }
+  const a=spots.splice(Math.floor(Math.random()*spots.length),1)[0]; const b=spots.length?spots[Math.floor(Math.random()*spots.length)]:a;
+  exitTile={x:a[0],y:a[1]}; powerTile={x:b[0],y:b[1],type:POWER,taken:false}; }
+applyLevel(1); genCrates();
 const crateAt=(x,y)=>crates[y]&&crates[y][x]>0;
 let worldT=0; const embers=[];   // ambient: lava pulse, statue eye flares, wall braziers, drifting embers
 const hash=(x,y)=>((x*73856093)^(y*19349663))>>>0;
 const hero={x:1,y:1,px:1*T,py:1*T,dir:'down',moving:false,t:0,speed:2.4};
-const candles=[]; const ENEMIES=2;
+
 function spawnEnemies(){ candles.length=0; if(showcase){ candles.push({x:WC-2,y:WR-2,px:(WC-2)*T,py:(WR-2)*T,dir:'left',t:0,speed:0,hp:2,state:'alive',st:0,flash:0},{x:WC-2,y:WR-3,px:(WC-2)*T,py:(WR-3)*T,dir:'left',t:0,speed:0,hp:2,state:'alive',st:0,flash:0}); return; } const dirs=['left','right','up','down']; let tries=0;
   while(candles.length<ENEMIES && tries++<500){ const x=1+Math.floor(Math.random()*(WC-2)), y=1+Math.floor(Math.random()*(WR-2));
     if(solid(x,y) || crateAt(x,y) || (Math.abs(x-1)+Math.abs(y-1))<8 || candles.some(c=>c.x===x&&c.y===y)) continue;
-    candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:1.0,hp:2,state:'alive',st:0,flash:0}); } }
+    candles.push({x,y,px:x*T,py:y*T,dir:dirs[Math.floor(Math.random()*4)],t:Math.floor(Math.random()*100),speed:ENEMY_SPEED,hp:2,state:'alive',st:0,flash:0}); } }
+function spawnAt(x,y,n){ const dirs=['left','right','up','down']; for(let i=0;i<n;i++) candles.push({x,y,px:x*T,py:y*T,dir:dirs[i%4],t:0,speed:ENEMY_SPEED,hp:2,state:'alive',st:0,flash:0}); }
 spawnEnemies();
-const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let winT=0; let cleared=false; const RANGE=2;
+const bombs=[]; const fires=[]; let hurtT=0; let lives=3; let deadT=0; let gameOver=false; let winT=0; let cleared=false; 
 const keys={};
 window.addEventListener('error',e=>{ const b=document.createElement('div'); b.style.cssText='position:fixed;left:8px;bottom:8px;z-index:9;background:#400;color:#fdd;font:12px monospace;padding:6px 10px;max-width:90vw'; b.textContent='error: '+e.message+' @'+e.lineno; document.body.appendChild(b); }); let readyAt=0;
-// title overlay: vignette + floating embers, drawn on a canvas over the looping video
-window._noEmbers=true;
-if(showcase) setTimeout(()=>document.getElementById('play').click(),1500);   // no floating particles on the title (her call); the overlay only draws the vignette
-(function(){ const c=document.getElementById('titlefx'), x=c.getContext('2d'); const ps=[]; let last=performance.now();
-  function frame(now){ if(document.getElementById('title').hidden) return; const dt=Math.min(50,now-last); last=now;
-    const W=c.width=c.clientWidth, H=c.height=c.clientHeight; x.clearRect(0,0,W,H);
-    if(window._noEmbers) ps.length=0;
-    if(!window._noEmbers && ps.length<70 && Math.random()<0.6) ps.push({x:Math.random()*W, y:H+10, vy:-(0.25+Math.random()*0.5)*(H/400), vx:(Math.random()-0.5)*0.3, s:0.6+Math.random()*0.9, life:2500+Math.random()*3000, t:0, ph:Math.random()*6.3});
-    for(let i=ps.length-1;i>=0;i--){ const p=ps[i]; p.t+=dt; p.x+=p.vx+Math.sin(p.t/400+p.ph)*0.3; p.y+=p.vy*(dt/16.7); if(p.t>p.life||p.y<-10){ps.splice(i,1);continue;}
-      const a=Math.sin(Math.PI*Math.min(1,p.t/p.life)); const k=W/736, r=p.s*k;
-      const gl=x.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6); gl.addColorStop(0,`rgba(255,180,80,${(0.55*a).toFixed(2)})`); gl.addColorStop(0.4,`rgba(255,90,30,${(0.22*a).toFixed(2)})`); gl.addColorStop(1,'rgba(255,60,20,0)');
-      x.fillStyle=gl; x.beginPath(); x.arc(p.x,p.y,r*6,0,6.3); x.fill();                                   // soft glow
-      x.fillStyle=`rgba(255,${210+Math.floor(a*45)},150,${(0.5+0.5*a).toFixed(2)})`; x.beginPath(); x.arc(p.x,p.y,r,0,6.3); x.fill(); }   // tiny hot core
-    const vg=x.createRadialGradient(W/2,H/2,Math.min(W,H)*0.35,W/2,H/2,Math.max(W,H)*0.72); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.82)'); x.fillStyle=vg; x.fillRect(0,0,W,H);
-    requestAnimationFrame(frame); }
-  requestAnimationFrame(frame); })();
-document.addEventListener('click',()=>{ window._clicks=(window._clicks||0)+1; }, true);
+// The title is made of independent PNG layers; its controller owns menu input and motion.
 let playing=false;
-function showGame(){ const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; cv.hidden=false; if(!started){ started=true; beginRound(); } }
-document.getElementById('play').addEventListener('click',()=>{ if(playing) return; playing=true;
-  const v=document.getElementById('titlevid'), btn=document.getElementById('play'); btn.style.display='none';
-  // her 'pressing play' video runs once with its own sound (the click is the gesture browsers need), then a quick flash and the game
-  v.loop=false; v.muted=true; v.src='assets/video/press.mp4'; v.currentTime=0; window._noEmbers=true;
-if(showcase) setTimeout(()=>document.getElementById('play').click(),1500);   // silent; embers stop, the vignette stays over the press video
-  let done=false; const go=()=>{ if(done) return; done=true; const f=document.getElementById('flash'); f.style.transition='none'; f.style.opacity='1'; showGame(); setTimeout(()=>{ f.style.transition='opacity .9s ease-out'; f.style.opacity='0'; },120); };   // black, then the game fades in over 0.9 s
-  v.playbackRate=1.4; v.onended=go; v.onerror=go; v.play().catch(go); setTimeout(go,8000); });   // 6 s video in about 4.3 s
+function showGame(){ const t=document.getElementById('title'); t.hidden=true; cv.hidden=false; if(!started){ started=true; beginRound(); } }
+function startFromTitle(){
+  if(playing) return;
+  playing=true;
+  const title=document.getElementById('title');
+  title.classList.add('confirming');
+  document.querySelectorAll('.menu-item').forEach(button=>button.disabled=true);
+  title.dispatchEvent(new Event('startconfirm'));
+  const reduced=title.classList.contains('still');
+  setTimeout(()=>{
+    const f=document.getElementById('flash');
+    f.style.transition='none'; f.style.opacity='1';
+    showGame();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      f.style.transition=reduced?'none':'opacity .45s ease-out'; f.style.opacity='0';
+    }));
+  },1000);
+}
+// Showcase starts after the staged title has finished.
+if(showcase) document.getElementById('title').addEventListener('introready',()=>setTimeout(()=>document.getElementById('play').click(),500),{once:true});
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ if(showcase) scStart(); ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
-addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver||cleared){ resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
+addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver){ level=1; score=0; RANGE=2; bombCap=1; hero.speed=2.4; lives=3; resetGame(); beginRound(); e.preventDefault(); return; }
+  if(cleared){ if(escaped){ escaped=false; level=1; score=0; RANGE=2; bombCap=1; hero.speed=2.4; lives=3; } else { level++; lives=Math.min(5,lives+1); if(level>5){ escaped=true; level=5; } } resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
 let caption='', captionT=0; function say(t){ caption=t; captionT=180; }
 // showcase: a scripted round that triggers every sound in order. steps = [frames to wait, action]
@@ -110,7 +148,7 @@ function hit(src){
   if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); const g=new Audio('assets/audio/gameover.mp3'); g.volume=0.8; g.play().catch(()=>{}); return; }   // game over sound starts with the dying animation
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
-function resetGame(){ genCrates(); lives=3; deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
+function resetGame(){ applyLevel(level); genCrates(); lives=Math.min(5,lives); deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
 const SC_STEPS=[   // [how many frames this step lasts, what it does]
  [60,()=>{ say('footsteps'); keys.ArrowRight=1; }],
  [20,()=>{ keys.ArrowRight=0; }],
@@ -134,11 +172,12 @@ const SC_STEPS=[   // [how many frames this step lasts, what it does]
  [700,()=>{ say('game over: death line + sound'); resetGame(); ready=false; lives=1; hurtT=0; dropBomb(); }],
  [60,()=>{ say('end of showcase'); }],
 ];
-function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
+function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; if(bombs.length>=bombCap) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
   for(const [dx,dy,k] of [[1,0,'h'],[-1,0,'h'],[0,1,'v'],[0,-1,'v']]){
     for(let r=1;r<=RANGE;r++){ const cx=b.x+dx*r, cy=b.y+dy*r; if(solid(cx,cy)) break; cells.push([cx,cy,k]); if(crateAt(cx,cy)){ crates[cy][cx]=-(crates[cy][cx]*100+30); break; }
+      if(exitTile && cx===exitTile.x && cy===exitTile.y && crates[cy][cx]===0 && !cells.spawned){ cells.spawned=true; spawnAt(cx,cy,2); }
       const other=bombs.find(o=>o.x===cx&&o.y===cy&&!o.dead); if(other){other.t=999;} }
   }
   fires.push({cells,t:0}); play('explode',0.9);
@@ -153,6 +192,9 @@ function update(){
   for(let i=bombs.length-1;i>=0;i--) if(bombs[i].dead) bombs.splice(i,1);
   for(const f of fires) f.t++;
   worldT++;
+  if(!ready && deadT===0 && winT===0 && !gameOver){ if(timeLeft>0) timeLeft--; else if(!timeSpawned){ timeSpawned=true; say('TIME UP: more enemies'); spawnAt(WC-2,WR-2,3); } }
+  if(powerTile && !powerTile.taken && crates[powerTile.y][powerTile.x]===0 && hero.x===powerTile.x && hero.y===powerTile.y && Math.abs(hero.px-hero.x*T)<1 && Math.abs(hero.py-hero.y*T)<1){
+    powerTile.taken=true; score+=500; if(powerTile.type==='bomb') bombCap++; else if(powerTile.type==='fire') RANGE++; else hero.speed+=0.6; pickPlay(startClips,-1); say({bomb:'extra bomb',fire:'fire range up',speed:'speed up'}[powerTile.type]); }
   if(captionT>0) captionT--;
   if(sc && !ready && deadT===0 && !gameOver){ if(sc.wait>0){ sc.wait--; } else if(sc.i<SC_STEPS.length){ const [w,fn]=SC_STEPS[sc.i++]; fn(); sc.wait=w; } }
   // embers: spawn over floor tiles in view, drift up and fade
@@ -165,11 +207,11 @@ function update(){
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
   if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
-  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead')){ winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
+  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
   if(winT>0){ winT++; if(winT>360+30) cleared=true; }
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
-      if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; lastKill=pickPlay(killClips,lastKill); } } }   // she talks on the hit and on the kill
+      if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; score+=200; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; lastKill=pickPlay(killClips,lastKill); } } }   // she talks on the hit and on the kill
     else if(c.state==='dying'){ c.st++; if(c.st>60) c.state='dead'; }
   }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
@@ -204,6 +246,8 @@ function draw(){
     else { const ph=Math.floor((worldT/24+hash(cx,cy)%6)%6); name=['tile_floor','tile_floor_1','tile_floor_1','tile_floor','tile_floor_2','tile_floor_2'][ph]; }   // lava veins pulse dim / bright, per tile out of phase
     const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],cx*T,cy*T,T,T);
     if(sconce){ const s=meta.frames[sconce]; ctx.drawImage(atlas,s[0],s[1],s[2],s[3],cx*T,cy*T,T,T); }
+    if(exitTile&&cx===exitTile.x&&cy===exitTile.y&&crates[cy][cx]===0){ const g=meta.frames['tile_exit']; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); }
+    if(powerTile&&!powerTile.taken&&cx===powerTile.x&&cy===powerTile.y&&crates[cy][cx]===0){ const g=meta.frames['pw_'+powerTile.type]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); }
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
   for(const b of bombs) drawBomb(b);
@@ -220,17 +264,20 @@ function draw(){
   // HUD: Bomberman-style top bar, hearts at the left
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle='#1a0a0e'; ctx.fillRect(0,0,cv.width,HUD); ctx.fillStyle='#c9a24a'; ctx.fillRect(0,HUD-3,cv.width,2); ctx.fillRect(0,0,cv.width,1);
-  for(let i=0;i<3;i++){ const f=meta.frames[i<lives?'hud_heart_full':'hud_heart_empty']; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],12+i*28,8,f[2],f[3]); }
+  for(let i=0;i<Math.max(3,lives);i++){ const f=meta.frames[i<lives?'hud_heart_full':'hud_heart_empty']; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],12+i*28,8,f[2],f[3]); }
+  ctx.fillStyle='#f3d9a0'; ctx.font='bold 13px monospace'; ctx.textAlign='center'; ctx.fillText('LEVEL '+level, cv.width/2-60, 24); ctx.fillText('TIME '+String(Math.ceil(timeLeft/60)).padStart(3,'0'), cv.width/2+40, 24);
+  ctx.textAlign='right'; ctx.fillText(String(score).padStart(6,'0'), cv.width-12, 24);
+  ctx.textAlign='left'; ctx.font='bold 11px monospace'; ctx.fillText('B'+bombCap+' F'+RANGE+' S'+(hero.speed>2.4?'+':''), cv.width/2+110, 24);
   if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 22px monospace'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
   if(captionT>0&&caption){ ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,22); ctx.fillStyle='#f3d9a0'; ctx.font='bold 13px monospace'; ctx.textAlign='center'; ctx.fillText(caption, cv.width/2, HUD+16); }
-  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('PHASE 1 CLEAR', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
+  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText(escaped?'YOU ESCAPED HELL':('LEVEL '+level+' CLEAR'), cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
   if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#f3d9a0'; ctx.font='bold 18px monospace'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='bold 12px monospace'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
 }
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
 function step(now){
   if(auto && !started){ started=true; ready=false; const t=document.getElementById('title'); t.hidden=true; t.style.display='none'; cv.hidden=false; }
-  if(!meta||!atlas.complete){ last=now||performance.now(); requestAnimationFrame(step); return; }
+  if(!started||!meta||!atlas.complete||!atlas.naturalWidth){ last=now||performance.now(); requestAnimationFrame(step); return; }
   now=now||performance.now(); acc+=Math.min(100,now-last); last=now;
   let n=0; while(acc>=STEP && n<4){ update(); acc-=STEP; n++; }
   if(acc>=STEP) acc=0;
@@ -244,4 +291,4 @@ function fpsReport(){ const dt=(performance.now()-_t0)/1000; const fps=(_fr/dt).
 setInterval(fpsReport,3000);
 step=function(now){ const a=performance.now(); _step(now); _stepMs+=performance.now()-a; _fr++; };
 requestAnimationFrame(step);
-</script></body></html>
+</script><script src="assets/title/sprite-player.js"></script><script src="assets/title/title-audio.js"></script><script src="assets/title/title.js"></script></body></html>

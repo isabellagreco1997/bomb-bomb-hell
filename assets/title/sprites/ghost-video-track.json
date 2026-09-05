@@ -1,0 +1,48 @@
+{
+  "file": "ghost-video-body-outline-v4-atlas.png",
+  "frames": 145,
+  "fps": 24,
+  "columns": 10,
+  "size": [
+    36,
+    75
+  ],
+  "origin": [
+    282,
+    103
+  ],
+  "playback": "ping-pong",
+  "source": "monster.mp4",
+  "floatingPieces": [
+    {
+      "file": "ghost-ball-1.png",
+      "origin": [
+        274,
+        137
+      ],
+      "amplitude": 1.5,
+      "period": 2.8,
+      "phase": 0.0
+    },
+    {
+      "file": "ghost-ball-2.png",
+      "origin": [
+        324,
+        142
+      ],
+      "amplitude": 1.5,
+      "period": 3.4,
+      "phase": 2.0943951023931953
+    },
+    {
+      "file": "ghost-ball-3.png",
+      "origin": [
+        272,
+        162
+      ],
+      "amplitude": 1.5,
+      "period": 4.1,
+      "phase": 4.1887902047863905
+    }
+  ]
+}

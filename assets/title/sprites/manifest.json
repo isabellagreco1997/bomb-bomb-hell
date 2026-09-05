@@ -1,0 +1,91 @@
+{
+  "stage": [
+    350,
+    280
+  ],
+  "fps": 12,
+  "sourcePixelGrid": 4,
+  "sprites": {
+    "heroine": {
+      "file": "heroine-two-hands-atlas.png",
+      "frames": 145,
+      "fps": 24,
+      "columns": 10,
+      "size": [
+        137,
+        161
+      ],
+      "origin": [
+        2,
+        108
+      ],
+      "playback": "ping-pong",
+      "source": "animation-girl.mp4",
+      "uniqueFrames": 145
+    },
+    "ghost": {
+      "file": "ghost-video-body-outline-v4-atlas.png",
+      "frames": 145,
+      "fps": 24,
+      "columns": 10,
+      "size": [
+        36,
+        75
+      ],
+      "origin": [
+        282,
+        103
+      ],
+      "playback": "ping-pong",
+      "source": "monster.mp4",
+      "floatingPieces": [
+        {
+          "file": "ghost-ball-1.png",
+          "origin": [
+            274,
+            137
+          ],
+          "amplitude": 1.5,
+          "period": 2.8,
+          "phase": 0.0
+        },
+        {
+          "file": "ghost-ball-2.png",
+          "origin": [
+            324,
+            142
+          ],
+          "amplitude": 1.5,
+          "period": 3.4,
+          "phase": 2.0943951023931953
+        },
+        {
+          "file": "ghost-ball-3.png",
+          "origin": [
+            272,
+            162
+          ],
+          "amplitude": 1.5,
+          "period": 4.1,
+          "phase": 4.1887902047863905
+        }
+      ]
+    },
+    "logo": {
+      "file": "logo-warm-flame-atlas.png",
+      "frames": 145,
+      "fps": 24,
+      "columns": 10,
+      "size": [
+        154,
+        178
+      ],
+      "origin": [
+        126,
+        7
+      ],
+      "playback": "ping-pong",
+      "source": "logo.mp4"
+    }
+  }
+}
