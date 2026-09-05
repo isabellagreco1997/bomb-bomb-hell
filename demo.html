@@ -40,7 +40,8 @@
 const showcase=new URLSearchParams(location.search).get('showcase');   // scripted sound showcase mode
 const bot=new URLSearchParams(location.search).get('bot');             // bot=1: plays by itself through the normal inputs
 // level state must exist before the world is generated below
-const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb', SPIT=0; const flames=[];
+const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb', SPIT=0; const flames=[]; const sfxFlame=new Audio('assets/audio/flame.mp3'), sfxFlameWall=new Audio('assets/audio/flamewall.mp3'); sfxFlame.preload=sfxFlameWall.preload='auto';
+function sfxPlay(a,v){ const x=a.cloneNode(); x.volume=v; x.play().catch(()=>{}); }
 let RANGE=2, bombCap=1, level=1, score=0, timeLeft=200*60, timeSpawned=false, exitTile=null, powerTile=null, escaped=false;
 const LEVELS=[null,
   {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb',time:200,spit:0},
@@ -269,7 +270,7 @@ function update(){
   hero.t++;
   // enemies: grid-locked wander; at each tile keep going, or turn when blocked (or at random, 1 in 6)
   const DIRS={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1]};
-  for(const c of candles){ c.t++; if(c.state!=='alive' || c.speed===0) continue;   // speed 0 = pinned (showcase)
+  for(const c of candles){ c.t++; if(c.state!=='alive' || c.speed===0 || c.tele>0 || c.pause>0) continue;   // speed 0 = pinned (showcase); still while spitting
     const at=Math.abs(c.px-c.x*T)<0.01&&Math.abs(c.py-c.y*T)<0.01;
     if(at){ let [dx,dy]=DIRS[c.dir]; const blocked=(x,y)=>solid(x,y)||crateAt(x,y)||bombs.some(b=>b.x===x&&b.y===y);
       if(blocked(c.x+dx,c.y+dy)||Math.random()<1/6){ const opts=Object.keys(DIRS).filter(k=>!blocked(c.x+DIRS[k][0],c.y+DIRS[k][1])); if(opts.length) c.dir=opts[Math.floor(Math.random()*opts.length)]; [dx,dy]=DIRS[c.dir]; }
@@ -277,16 +278,17 @@ function update(){
     c.px+=Math.sign(c.x*T-c.px)*Math.min(c.speed,Math.abs(c.x*T-c.px)); c.py+=Math.sign(c.y*T-c.py)*Math.min(c.speed,Math.abs(c.y*T-c.py)); }
   // ghosts spit little flames when she is in line within 5 tiles and nothing is between (from level 2)
   if(SPIT>0 && !ready && deadT===0 && winT===0) for(const c of candles){ if(c.state!=='alive') continue; c.cool=(c.cool||0)-1; c.tele=(c.tele||0);
-    if(c.tele>0){ c.tele--; if(c.tele===0){ flames.push({x:c.px+T/2,y:c.py+T/2-6,dx:c.aim[0]*2.6,dy:c.aim[1]*2.6,t:0}); } continue; }
+    if(c.tele>0){ c.tele--; if(c.tele===6){ flames.push({x:c.px+T/2,y:c.py+T/2,dx:c.aim[0]*2.6,dy:c.aim[1]*2.6,t:0,lift:26}); sfxPlay(sfxFlame,0.7); } if(c.tele===0) c.pause=18; continue; }
+    if(c.pause>0){ c.pause--; continue; }
     if(c.cool>0) continue;
     const sameRow=c.y===hero.y, sameCol=c.x===hero.x; if(!sameRow&&!sameCol) continue;
     const dx=Math.sign(hero.x-c.x), dy=Math.sign(hero.y-c.y), dist=Math.abs(hero.x-c.x)+Math.abs(hero.y-c.y); if(dist===0||dist>5) continue;
     let clear=true; for(let i=1;i<dist;i++){ const x=c.x+dx*i,y=c.y+dy*i; if(solid(x,y)||crateAt(x,y)||bombs.some(b=>b.x===x&&b.y===y)){ clear=false; break; } }
     if(!clear) continue;
-    c.aim=[dx,dy]; c.tele=14; c.cool=SPIT; }
-  for(let i=flames.length-1;i>=0;i--){ const f=flames[i]; f.t++; f.x+=f.dx; f.y+=f.dy; const tx=Math.floor(f.x/T), ty=Math.floor(f.y/T);
-    if(f.t>240||solid(tx,ty)||crateAt(tx,ty)||bombs.some(b=>b.x===tx&&b.y===ty)){ flames.splice(i,1); continue; }
-    if(deadT===0&&hurtT===0&&Math.abs(f.x-(hero.px+T/2))<T*0.45&&Math.abs(f.y-(hero.py+T/2))<T*0.45){ flames.splice(i,1); hit('enemy'); } }
+    c.aim=[dx,dy]; c.tele=24; c.cool=SPIT; }
+  for(let i=flames.length-1;i>=0;i--){ const f=flames[i]; f.t++; f.x+=f.dx; f.y+=f.dy; if(f.lift>0) f.lift=Math.max(0,f.lift-2); const tx=Math.floor(f.x/T), ty=Math.floor(f.y/T);
+    if(f.t>240||solid(tx,ty)||crateAt(tx,ty)||bombs.some(b=>b.x===tx&&b.y===ty)){ flames.splice(i,1); sfxPlay(sfxFlameWall,0.6); continue; }
+    if(deadT===0&&hurtT===0&&Math.abs(f.x-(hero.px+T/2))<T*0.45&&Math.abs(f.y-(hero.py+T/2))<T*0.45){ flames.splice(i,1); sfxPlay(sfxFlameWall,0.7); hit('enemy'); } }
   // camera: centred on her, clamped to the world
   cam.x=Math.max(0,Math.min(WC*T-COLS*T, hero.px+T/2-COLS*T/2)); cam.y=Math.max(0,Math.min(WR*T-ROWS*T, hero.py+T/2-ROWS*T/2));
 }
@@ -310,14 +312,14 @@ function draw(){
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
   for(const s of sparks){ const a=s.t<8?s.t/8:(1-s.t/s.life); if(Math.floor(s.t/3)%2===0||a>0.7){ ctx.globalAlpha=Math.max(0,Math.min(1,a)); ctx.fillStyle=s.c; const sz=a>0.6?2:1; ctx.fillRect(Math.round(s.x),Math.round(s.y),sz,sz); } } ctx.globalAlpha=1;
-  for(const f of flames){ const g=meta.frames[meta.anims.flame[Math.floor(f.t/4)%3]]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],Math.round(f.x)-8,Math.round(f.y)-8+Math.round(Math.sin(f.t/3)),16,16); }
+  for(const f of flames){ const g=meta.frames[meta.anims.flame[Math.floor(f.t/4)%4]]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],Math.round(f.x)-12,Math.round(f.y)-12-(f.lift||0)+Math.round(Math.sin(f.t/3)),24,24); }
   for(const b of bombs) drawBomb(b);
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
     for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
   for(const c of candles){ if(c.state==='dead') continue; const bob=Math.round(Math.sin(c.t/11)*3);
     if(c.state==='alive'){ const fl=meta.anims.candle_flicker; const idle=fl[Math.floor(c.t/10)%fl.length];
       if(c.flash>0 && Math.floor(c.flash/5)%2===0){ const an=meta.anims.candle_hurt; drawFrame(an[Math.floor(c.flash/10)%an.length],c.px,c.py+bob); }
-      else if(c.tele>0){ const f=meta.frames[idle]; octx.clearRect(0,0,128,128); octx.globalCompositeOperation='source-over'; octx.drawImage(atlas,f[0],f[1],f[2],f[3],0,0,f[2],f[3]); octx.globalCompositeOperation='source-atop'; octx.fillStyle='rgba(255,240,200,0.55)'; octx.fillRect(0,0,f[2],f[3]); ctx.drawImage(off,0,0,f[2],f[3],Math.round(c.px)-((f[2]-T)>>1),Math.round(c.py+bob)-(f[3]-T),f[2],f[3]); }   // the tell: it brightens before it spits
+      else if(c.tele>0){ const sp=meta.anims.candle_spit; drawFrame(sp[Math.min(3,Math.floor((24-c.tele)/6))],c.px,c.py+bob); }   // the spit: the head flame stretches, flares, bursts
       else drawFrame(idle,c.px,c.py+bob); }
     else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; const k=c.st<24?Math.floor(c.st/8)%an.length:Math.min(an.length-1,Math.floor((c.st-24)/9)); drawFrame(an[k],c.px,c.py); } }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
