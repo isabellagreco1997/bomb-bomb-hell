@@ -32,9 +32,20 @@
     sound.dataset.cueAt = String(performance.now());
     sound.play().then(() => {
       sound.dataset.playback = 'played';
+      if (sound === music) hint(false);
     }).catch(error => {
       sound.dataset.playback = error.name === 'NotAllowedError' ? 'blocked' : 'error';
+      // Browsers block autoplay on a site the visitor has not interacted with yet: start the theme on the first click or key.
+      if (sound === music && error.name === 'NotAllowedError') armResume();
     });
+  }
+  let resumeArmed = false;
+  function hint(show) { const h = document.getElementById('sound-hint'); if (h) h.hidden = !show; }
+  function armResume() {
+    if (resumeArmed) return; resumeArmed = true; hint(true);
+    const resume = () => { document.removeEventListener('pointerdown', resume, true); document.removeEventListener('keydown', resume, true);
+      if (!title.hidden && !title.classList.contains('confirming')) play(music); hint(false); };
+    document.addEventListener('pointerdown', resume, true); document.addEventListener('keydown', resume, true);
   }
 
   title.addEventListener('animationstart', event => {
