@@ -64,7 +64,7 @@
 #title.opening .fuse-glint{animation:fuse-catch .6s 1.65s ease-out both}
 #title.still .title-impact,#title.still .fuse-glint{display:none}
 @keyframes skyline-reveal{from{opacity:0;transform:scale(1.08) translateY(3%)}to{opacity:1;transform:none}}
-@keyframes hero-tumble{0%{opacity:0;transform:translate(-10%,-85%) rotate(-24deg)}20%{opacity:1}70%{transform:translate(1%,3%) rotate(5deg)}86%{transform:translate(0,-1.5%) rotate(-2deg)}100%{opacity:1;transform:none}}
+@keyframes hero-tumble{0%{opacity:0;transform:translate(-10%,-85%)}20%{opacity:1}100%{opacity:1;transform:none}}
 @keyframes ghost-swoop{0%{opacity:0;transform:translate(25%,-25%) rotate(18deg)}20%{opacity:1}100%{opacity:1;transform:translate(0,0) rotate(0deg)}}
 @keyframes title-impact{0%{opacity:0;transform:scale(2.1) rotate(-9deg)}42%{opacity:1;transform:scale(.91) rotate(2deg)}62%{transform:scale(1.04) rotate(-1deg)}100%{opacity:1;transform:none}}
 @keyframes menu-rise{from{opacity:0;transform:translateY(8%)}70%{opacity:1;transform:translateY(-.6%)}to{opacity:1;transform:none}}
@@ -79,3 +79,5 @@
 #title.sprites-ready .title-sprite{visibility:visible}
 #title.sprites-ready .sprite-fallback{visibility:hidden}
 #title.loading .title-sprite{visibility:hidden}
+
+#howtoplay,#howtoplay p,#howtoplay kbd{text-transform:uppercase}

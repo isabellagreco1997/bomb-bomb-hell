@@ -320,8 +320,8 @@ function draw(){
   ctx.textAlign='left'; ctx.font='11px HellMenuPixel'; ctx.fillText('B'+bombCap+' F'+RANGE+' S'+(hero.speed>2.4?'+':''), cv.width/2+110, 24);
   if(ready){ ctx.fillStyle='rgba(0,0,0,0.35)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='22px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText('READY?', cv.width/2, cv.height/2); }
   if(captionT>0&&caption){ ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,22); ctx.fillStyle='#ffffff'; ctx.font='13px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText(caption, cv.width/2, HUD+16); }
-  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='18px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText(escaped?'YOU ESCAPED HELL':('LEVEL '+level+' CLEAR'), cv.width/2, cv.height/2); ctx.font='12px HellMenuPixel'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
-  if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='18px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='12px HellMenuPixel'; ctx.fillText('press any key', cv.width/2, cv.height/2+22); }
+  if(cleared){ ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='18px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText(escaped?'YOU ESCAPED HELL':('LEVEL '+level+' CLEAR'), cv.width/2, cv.height/2); ctx.font='12px HellMenuPixel'; ctx.fillText('PRESS ANY KEY', cv.width/2, cv.height/2+22); }
+  if(gameOver){ ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,HUD,cv.width,cv.height-HUD); ctx.fillStyle='#ffffff'; ctx.font='18px HellMenuPixel'; ctx.textAlign='center'; ctx.fillText('GAME OVER', cv.width/2, cv.height/2); ctx.font='12px HellMenuPixel'; ctx.fillText('PRESS ANY KEY', cv.width/2, cv.height/2+22); }
 }
 // fixed timestep: logic always runs at 60 Hz (catching up to 4 steps if the display frame is late), one draw per display frame
 const STEP=1000/60; let acc=0, last=performance.now();
