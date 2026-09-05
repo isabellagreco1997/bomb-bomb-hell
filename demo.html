@@ -38,16 +38,17 @@
 <div id="flash" style="position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:30;transition:opacity .9s ease-out"></div>
 <script>
 const showcase=new URLSearchParams(location.search).get('showcase');   // scripted sound showcase mode
+const bot=new URLSearchParams(location.search).get('bot');             // bot=1: plays by itself through the normal inputs
 // level state must exist before the world is generated below
 const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb';
 let RANGE=2, bombCap=1, level=1, score=0, timeLeft=200*60, timeSpawned=false, exitTile=null, powerTile=null, escaped=false;
 const LEVELS=[null,
-  {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb'},
-  {w:15,h:13,enemies:2,crates:0.30,speed:1.1,power:'fire'},
-  {w:19,h:13,enemies:3,crates:0.35,speed:1.2,power:'speed'},
-  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb'},
-  {w:27,h:17,enemies:6,crates:0.40,speed:1.5,power:'fire'}];
-function applyLevel(n){ const L=LEVELS[n]; WC=L.w; WR=L.h; ENEMIES=L.enemies; CRATE_RATE=L.crates; ENEMY_SPEED=L.speed; POWER=L.power; timeLeft=200*60; timeSpawned=false; }
+  {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb',time:200},
+  {w:15,h:13,enemies:2,crates:0.30,speed:1.1,power:'fire',time:240},
+  {w:19,h:13,enemies:3,crates:0.35,speed:1.2,power:'speed',time:300},
+  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb',time:360},
+  {w:27,h:17,enemies:6,crates:0.40,speed:1.5,power:'fire',time:420}];
+function applyLevel(n){ const L=LEVELS[n]; WC=L.w; WR=L.h; ENEMIES=L.enemies; CRATE_RATE=L.crates; ENEMY_SPEED=L.speed; POWER=L.power; timeLeft=L.time*60; timeSpawned=false; }
 const T=48, COLS=13, ROWS=11; let WC=13, WR=11; const SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
 const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
@@ -116,7 +117,7 @@ function startFromTitle(){
   },1000);
 }
 // Showcase starts after the staged title has finished.
-if(showcase) document.getElementById('title').addEventListener('introready',()=>setTimeout(()=>document.getElementById('play').click(),500),{once:true});
+if(showcase||bot) document.getElementById('title').addEventListener('introready',()=>setTimeout(()=>document.getElementById('play').click(),500),{once:true});
 function endReady(){ if(!ready) return; ready=false; music.play().catch(()=>{}); }
 function beginRound(){ if(showcase) scStart(); ready=true; readyAt=performance.now(); music.pause(); music.currentTime=0; intro.currentTime=0; intro.onended=endReady; intro.play().catch(()=>{}); setTimeout(endReady,5200); pickPlay(startClips,-1); }
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver){ level=1; score=0; RANGE=2; bombCap=1; hero.speed=2.4; lives=3; resetGame(); beginRound(); e.preventDefault(); return; }
@@ -172,6 +173,42 @@ const SC_STEPS=[   // [how many frames this step lasts, what it does]
  [700,()=>{ say('game over: death line + sound'); resetGame(); ready=false; lives=1; hurtT=0; dropBomb(); }],
  [60,()=>{ say('end of showcase'); }],
 ];
+// ---------- BOT ----------
+const botState={mode:'hunt',retreatT:0,stuck:0};
+function blastCells(bx,by,range){ const out=[[bx,by]]; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) for(let r=1;r<=range;r++){ const x=bx+dx*r,y=by+dy*r; if(solid(x,y)) break; out.push([x,y]); if(crateAt(x,y)) break; } return out; }
+function dangerMap(){ const D=new Set(); for(const b of bombs) for(const [x,y] of blastCells(b.x,b.y,RANGE)) D.add(x+','+y); for(const f of fires) for(const [x,y] of f.cells) D.add(x+','+y); return D; }
+function enemyNear(x,y,dist){ return candles.some(c=>c.state==='alive' && Math.abs(c.x-x)+Math.abs(c.y-y)<=dist); }
+function bfs(sx,sy,passable){ const prev=new Map(); const q=[[sx,sy]]; prev.set(sx+','+sy,null);
+  while(q.length){ const [x,y]=q.shift(); for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx,ny=y+dy,k=nx+','+ny; if(prev.has(k)||!passable(nx,ny)) continue; prev.set(k,x+','+y); q.push([nx,ny]); } } return prev; }
+function firstStep(prev,tx,ty,sx,sy){ let k=tx+','+ty; if(!prev.has(k)) return null; let last=k; while(prev.get(k)!==null && prev.get(k)!==sx+','+sy){ k=prev.get(k); } if(prev.get(k)===null) return null; const [x,y]=k.split(',').map(Number); return [x,y]; }
+function botStep(){
+  for(const k of ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown']) keys[k]=0;
+  const D=dangerMap(); const hx=hero.x, hy=hero.y; const here=hx+','+hy;
+  const walk=(x,y)=>!solid(x,y)&&!crateAt(x,y)&&!bombs.some(b=>b.x===x&&b.y===y);
+  const safe=(x,y)=>walk(x,y)&&!D.has(x+','+y)&&!enemyNear(x,y,1);
+  const go=(t)=>{ if(!t) return false; const [x,y]=t; keys[x>hx?'ArrowRight':x<hx?'ArrowLeft':y>hy?'ArrowDown':'ArrowUp']=1; return true; };
+  // 1. standing in danger (or an enemy right next to us): run to the nearest safe tile
+  if(D.has(here) || enemyNear(hx,hy,1)){ const prev=bfs(hx,hy,(x,y)=>walk(x,y)&&!fires.some(f=>f.cells.some(c=>c[0]===x&&c[1]===y))); let best=null,bd=99;
+    for(const k of prev.keys()){ const [x,y]=k.split(',').map(Number); if(k===here) continue; if(safe(x,y)){ let dd=0,kk=k; while(prev.get(kk)!==null){ kk=prev.get(kk); dd++; } if(dd<bd){ bd=dd; best=[x,y]; } } }
+    if(best){ go(firstStep(prev,best[0],best[1],hx,hy)); return; } }
+  // 2. a bomb of ours is ticking: hold still on a safe tile
+  if(bombs.length){ return; }
+  const prev=bfs(hx,hy,(x,y)=>walk(x,y)&&!D.has(x+','+y));
+  const dist=(x,y)=>{ let k=x+','+y; if(!prev.has(k)) return 999; let dd=0; while(prev.get(k)!==null){ k=prev.get(k); dd++; } return dd; };
+  const canRetreatFrom=(bx,by)=>{ const cells=new Set(blastCells(bx,by,RANGE).map(c=>c[0]+','+c[1])); const p2=bfs(bx,by,(x,y)=>walk(x,y)&&!D.has(x+','+y)); for(const k of p2.keys()){ if(cells.has(k)) continue; const [x,y]=k.split(',').map(Number); let dd=0,kk=k; while(p2.get(kk)!==null){ kk=p2.get(kk); dd++; } if(dd<=RANGE+3 && !enemyNear(x,y,1)) return true; } return false; };
+  const allDead=candles.every(c=>c.state==='dead');
+  // 3. a revealed power-up: go get it
+  if(powerTile&&!powerTile.taken&&crates[powerTile.y][powerTile.x]===0&&prev.has(powerTile.x+','+powerTile.y)){ if(go(firstStep(prev,powerTile.x,powerTile.y,hx,hy))) return; }
+  // 4. all enemies dead and the exit is revealed: walk to it
+  if(allDead && exitTile && crates[exitTile.y][exitTile.x]===0 && prev.has(exitTile.x+','+exitTile.y)){ if(hx===exitTile.x&&hy===exitTile.y) return; if(go(firstStep(prev,exitTile.x,exitTile.y,hx,hy))) return; }
+  // 5. an enemy in our line of fire within range and we can get away: bomb it
+  for(const c of candles){ if(c.state!=='alive') continue; if(blastCells(hx,hy,RANGE).some(([x,y])=>x===c.x&&y===c.y) && canRetreatFrom(hx,hy)){ dropBomb(); return; } }
+  // 6. otherwise break the nearest crate (or approach the nearest enemy when no crates are left)
+  let best=null,bd=999;
+  for(let y=1;y<WR-1;y++)for(let x=1;x<WC-1;x++){ if(!crateAt(x,y)) continue; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const ax=x+dx,ay=y+dy; if(!prev.has(ax+','+ay)) continue; const dd=dist(ax,ay); if(dd<bd){ bd=dd; best=[ax,ay]; } } }
+  if(best){ if(best[0]===hx&&best[1]===hy){ if(canRetreatFrom(hx,hy)) dropBomb(); else botState.stuck++; return; } go(firstStep(prev,best[0],best[1],hx,hy)); return; }
+  const target=candles.find(c=>c.state==='alive'); if(target){ let tb=null,td=999; for(const k of prev.keys()){ const [x,y]=k.split(',').map(Number); const dd=Math.abs(x-target.x)+Math.abs(y-target.y); if(dd<td&&dd>=2){ td=dd; tb=[x,y]; } } if(tb&&!(tb[0]===hx&&tb[1]===hy)) go(firstStep(prev,tb[0],tb[1],hx,hy)); }
+}
 function dropBomb(){ if(deadT>0||gameOver||ready||winT>0) return; if(bombs.some(b=>b.x===hero.x&&b.y===hero.y)) return; if(bombs.length>=bombCap) return; const chained=bombs.length>0; bombs.push({x:hero.x,y:hero.y,t:0,owner:true}); sfxDrop(chained); }
 function explode(b){
   const cells=[[b.x,b.y,'c']];
@@ -216,6 +253,7 @@ function update(){
   }
   // hero movement on the grid (Bomberman: tile-locked, smooth between tiles)
   const atTile=Math.abs(hero.px-hero.x*T)<0.01&&Math.abs(hero.py-hero.y*T)<0.01;
+  if(bot && atTile && deadT===0 && !gameOver && !ready && winT===0) botStep();
   if(atTile && deadT===0 && !gameOver && !ready && winT===0){
     let want=null;
     if(auto){autoT++; const seq=['right','down','right','down','left','up']; want=seq[Math.floor(autoT/60)%6]; if(autoT%160===20) dropBomb();}
@@ -246,8 +284,13 @@ function draw(){
     else { const ph=Math.floor((worldT/24+hash(cx,cy)%6)%6); name=['tile_floor','tile_floor_1','tile_floor_1','tile_floor','tile_floor_2','tile_floor_2'][ph]; }   // lava veins pulse dim / bright, per tile out of phase
     const f=meta.frames[name]; ctx.drawImage(atlas,f[0],f[1],f[2],f[3],cx*T,cy*T,T,T);
     if(sconce){ const s=meta.frames[sconce]; ctx.drawImage(atlas,s[0],s[1],s[2],s[3],cx*T,cy*T,T,T); }
-    if(exitTile&&cx===exitTile.x&&cy===exitTile.y&&crates[cy][cx]===0){ const g=meta.frames['tile_exit']; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); }
-    if(powerTile&&!powerTile.taken&&cx===powerTile.x&&cy===powerTile.y&&crates[cy][cx]===0){ const g=meta.frames['pw_'+powerTile.type]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); }
+    if(exitTile&&cx===exitTile.x&&cy===exitTile.y&&crates[cy][cx]===0){ const g=meta.frames['tile_exit']; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T);
+      const pulse=0.35+0.25*Math.sin(worldT/9); ctx.fillStyle=`rgba(255,80,220,${pulse.toFixed(2)})`; ctx.globalCompositeOperation='lighter'; ctx.beginPath(); ctx.arc(cx*T+T/2,cy*T+T/2,T*0.42,0,6.3); ctx.fill(); ctx.globalCompositeOperation='source-over'; }   // the portal breathes
+    if(powerTile&&!powerTile.taken&&cx===powerTile.x&&cy===powerTile.y&&crates[cy][cx]===0){ const g=meta.frames['pw_'+powerTile.type];
+      const bob=Math.round(Math.sin(worldT/12)*3), glow=0.25+0.2*Math.sin(worldT/7);
+      const gr=ctx.createRadialGradient(cx*T+T/2,cy*T+T/2+4,4,cx*T+T/2,cy*T+T/2+4,T*0.6); gr.addColorStop(0,`rgba(255,200,90,${glow.toFixed(2)})`); gr.addColorStop(1,'rgba(255,120,40,0)'); ctx.fillStyle=gr; ctx.fillRect(cx*T-8,cy*T-8,T+16,T+16);   // warm glow pulsing under it
+      ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T+bob,T,T);                                                                                                    // the item floats
+      if(worldT%40<6){ ctx.fillStyle='rgba(255,255,220,0.9)'; const sx=cx*T+10+(worldT%3)*12, sy=cy*T+8+bob+(worldT%2)*6; ctx.fillRect(sx,sy,2,2); ctx.fillRect(sx-2,sy,6,1); ctx.fillRect(sx,sy-2,1,6); } }   // a sparkle every so often
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
   for(const b of bombs) drawBomb(b);

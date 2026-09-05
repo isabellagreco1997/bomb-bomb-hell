@@ -16,7 +16,6 @@
 .menu-item.selected,.menu-item:hover,.menu-item:focus-visible{color:#fff0d3;outline:none}
 .menu-item::before{content:'';position:absolute;left:calc(-9 * var(--ui-pixel));top:0;width:calc(8 * var(--ui-pixel));color:#fa6c7d}
 .menu-item.selected::before{content:'>';animation:cursor-blink 1s steps(1,end) infinite}
-.menu-item:focus-visible{text-decoration:underline;text-decoration-thickness:var(--ui-pixel);text-underline-offset:calc(3 * var(--ui-pixel))}
 .start-hint,.title-credit{position:absolute;z-index:6;left:25%;width:50%;margin:0;text-align:center;font:400 calc(8 * var(--ui-pixel))/calc(9 * var(--ui-pixel)) HellMenuPixel,monospace;letter-spacing:var(--ui-pixel);text-shadow:var(--ui-pixel) var(--ui-pixel) #140208;white-space:nowrap}
 .start-hint{top:calc(64% + 21 * var(--ui-pixel));color:#c99883}
 .title-credit{top:calc(64% + 39 * var(--ui-pixel));color:#fff0d3}
