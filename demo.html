@@ -294,7 +294,7 @@ function draw(){
       const bob=Math.round(Math.sin(worldT/12)*3);
       if(worldT%4===0 && sparks.length<80) sparks.push({x:cx*T+10+Math.random()*(T-20), y:cy*T+T-6+bob, vx:(Math.random()-0.5)*0.3, vy:-(0.25+Math.random()*0.5), t:0, life:35+Math.random()*35, c:['#ffffff','#ffe9a0','#ffc46a','#fff6d0'][Math.floor(Math.random()*4)]});   // warm pixel sparks rising from the item
       ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T+bob,T,T);                                                                                                    // the item floats
-      if(worldT%40<6){ ctx.fillStyle='rgba(255,255,220,0.9)'; const sx=cx*T+10+(worldT%3)*12, sy=cy*T+8+bob+(worldT%2)*6; ctx.fillRect(sx,sy,2,2); ctx.fillRect(sx-2,sy,6,1); ctx.fillRect(sx,sy-2,1,6); } }   // a sparkle every so often
+       }
     const v=crates[cy][cx]; if(v!==0){ const type=v>0?v:Math.floor(-v/100); const g=meta.frames[`tile_crate_${type-1}${v<0?'_broken':''}`]; ctx.drawImage(atlas,g[0],g[1],g[2],g[3],cx*T,cy*T,T,T); } }
   for(const e of embers){ const a=1-e.t/e.life; ctx.fillStyle=`rgba(255,${120+Math.floor(a*100)},40,${(0.35+0.5*a).toFixed(2)})`; ctx.fillRect(Math.round(e.x),Math.round(e.y),2,2); }
   for(const s of sparks){ const a=s.t<8?s.t/8:(1-s.t/s.life); if(Math.floor(s.t/3)%2===0||a>0.7){ ctx.globalAlpha=Math.max(0,Math.min(1,a)); ctx.fillStyle=s.c; const sz=a>0.6?2:1; ctx.fillRect(Math.round(s.x),Math.round(s.y),sz,sz); } } ctx.globalAlpha=1;
