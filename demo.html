@@ -124,7 +124,7 @@ function beginRound(){ if(showcase) scStart(); ready=true; readyAt=performance.n
 addEventListener('keydown',e=>{ if(!started){ return; } if(gameOver){ level=1; score=0; RANGE=2; bombCap=1; hero.speed=2.4; lives=3; resetGame(); beginRound(); e.preventDefault(); return; }
   if(cleared){ if(escaped){ escaped=false; level=1; score=0; RANGE=2; bombCap=1; hero.speed=2.4; lives=3; } else { level++; lives=Math.min(5,lives+1); if(level>5){ escaped=true; level=5; } } resetGame(); beginRound(); e.preventDefault(); return; } keys[e.key]=1; if(e.key==='e'||e.key==='E') dropBomb(); e.preventDefault()}); addEventListener('keyup',e=>keys[e.key]=0);   /* first key = game start + a random start line (browsers need a gesture before sound) */
 const params=new URLSearchParams(location.search); let auto=params.get('auto'); let autoT=0;
-let caption='', captionT=0; function say(t){ caption=t; captionT=180; }
+let caption='', captionT=0; function say(t){ caption=String(t).toUpperCase(); captionT=180; }   // the pixel font has capitals only
 // showcase: a scripted round that triggers every sound in order. steps = [frames to wait, action]
 let sc=null;
 function scStart(){ sc={i:0,wait:0}; }
