@@ -59,7 +59,7 @@ let meta=null; fetch('assets/atlas.json?v='+V).then(r=>r.json()).then(m=>meta=m)
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
-let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/enemyhurt.json',enemyHurtClips); loadClips('assets/audio/death.json',deathClips);
+let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips); let levelupClips=[], winningClips=[]; let lastLU=-1, lastWin=-1; loadClips('assets/audio/levelup.json',levelupClips); loadClips('assets/audio/winning.json',winningClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/enemyhurt.json',enemyHurtClips); loadClips('assets/audio/death.json',deathClips);
 const intro=new Audio('assets/audio/intro.mp3'); intro.preload='auto'; intro.volume=0.9;
 const music=new Audio('assets/audio/music.mp3'); music.preload='auto'; music.loop=true; music.volume=0.45;
 let ready=false;   // true between the first key press and the end of the intro jingle: 'READY?' on screen, no movement
@@ -234,7 +234,7 @@ function update(){
   worldT++;
   if(!ready && deadT===0 && winT===0 && !gameOver){ if(timeLeft>0) timeLeft--; else if(!timeSpawned){ timeSpawned=true; say('TIME UP: more enemies'); spawnAt(WC-2,WR-2,3); } }
   if(powerTile && !powerTile.taken && crates[powerTile.y][powerTile.x]===0 && hero.x===powerTile.x && hero.y===powerTile.y && Math.abs(hero.px-hero.x*T)<1 && Math.abs(hero.py-hero.y*T)<1){
-    powerTile.taken=true; score+=500; if(powerTile.type==='bomb') bombCap++; else if(powerTile.type==='fire') RANGE++; else hero.speed+=0.6; pickPlay(startClips,-1); say({bomb:'extra bomb',fire:'fire range up',speed:'speed up'}[powerTile.type]); }
+    powerTile.taken=true; score+=500; if(powerTile.type==='bomb') bombCap++; else if(powerTile.type==='fire') RANGE++; else hero.speed+=0.6; lastLU=pickPlay(levelupClips,lastLU); say({bomb:'extra bomb',fire:'fire range up',speed:'speed up'}[powerTile.type]); }
   if(captionT>0) captionT--;
   if(sc && !ready && deadT===0 && !gameOver){ if(sc.wait>0){ sc.wait--; } else if(sc.i<SC_STEPS.length){ const [w,fn]=SC_STEPS[sc.i++]; fn(); sc.wait=w; } }
   // embers: spawn over floor tiles in view, drift up and fade
@@ -248,7 +248,7 @@ function update(){
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
   if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
-  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
+  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.onended=()=>{ if(winT>0) lastWin=pickPlay(winningClips,lastWin); }; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
   if(winT>0){ winT++; if(winT>360+30) cleared=true; }
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
