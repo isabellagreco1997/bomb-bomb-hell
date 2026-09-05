@@ -248,8 +248,8 @@ function update(){
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
   if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
-  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.onended=()=>{ if(winT>0) lastWin=pickPlay(winningClips,lastWin); }; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
-  if(winT>0){ winT++; if(winT>360+30) cleared=true; }
+  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
+  if(winT>0){ winT++; if(winT>360+30 && !cleared){ cleared=true; lastWin=pickPlay(winningClips,lastWin); } }   // the winning line lands with the LEVEL CLEAR text
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
       if(c.flash===0 && inFire(c.x,c.y)){ c.hp--; if(c.hp<=0){ c.state='dying'; c.st=0; score+=200; lastKill=pickPlay(killClips,lastKill); } else { c.flash=50; lastKill=pickPlay(killClips,lastKill); } } }   // she talks on the hit and on the kill
