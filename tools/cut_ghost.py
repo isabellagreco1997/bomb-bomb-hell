@@ -17,7 +17,7 @@ for c in raw[1:]:
     p=pad(c)
     if np.abs(p-last).mean()>1.0: cells.append(c); last=p
 # current in-game candle: body height (opaque rows) for the scale
-cur=np.array(Image.open(f'{A}/candle_flicker_0.png')); rows=np.nonzero((cur[...,3]>0).any(1))[0]; target_h=rows.max()-rows.min()+1
+cur=np.array(Image.open(f'{A}/ghost_flicker_0.png')); rows=np.nonzero((cur[...,3]>0).any(1))[0]; target_h=rows.max()-rows.min()+1
 med_h=np.median([c.shape[0] for c in cells]); scale=target_h/med_h
 print('unique',len(cells),'of',len(raw),'| target height',target_h,'median src height',med_h,'scale',round(scale,3))
 picks=[int(round(i*(len(cells)-1)/(N-1))) for i in range(N)]
@@ -31,5 +31,5 @@ for j,f in enumerate(q): f.save(f'{OUT}/ghost_loop_{j}.png')
 big=[f.resize((192,240),Image.NEAREST) for f in q]; bgi=[Image.new('RGB',b.size,(40,4,12)) for b in big]
 for b,g in zip(big,bgi): g.paste(b,(0,0),b)
 bgi[0].save(f'{OUT}/ghost_loop.gif',save_all=True,append_images=bgi[1:],duration=int(1000*(E-S)/24/N),loop=0)
-old=Image.open(f'{A}/candle_flicker_0.png').resize((192,240),Image.NEAREST); cmp=Image.new('RGB',(192*2+20,240),(40,4,12)); cmp.paste(old,(0,0),old); cmp.paste(big[0],(212,0),big[0]); cmp.save(f'{OUT}/ghost_compare.png')
+old=Image.open(f'{A}/ghost_flicker_0.png').resize((192,240),Image.NEAREST); cmp=Image.new('RGB',(192*2+20,240),(40,4,12)); cmp.paste(old,(0,0),old); cmp.paste(big[0],(212,0),big[0]); cmp.save(f'{OUT}/ghost_compare.png')
 sheet(q,N,4,bg=(40,4,12,255)).save(f'{OUT}/ghost_strip.png'); print('gif frames',len(q),'ms/frame',int(1000*(E-S)/24/N))

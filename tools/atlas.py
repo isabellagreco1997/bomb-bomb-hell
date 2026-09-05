@@ -6,14 +6,14 @@ names=[]
 for d in ('down','up','left','right'):
     names+=[f'heroine_idle_{d}_{j}' for j in range(24)]
     names+= [f'heroine_cycle_{d}_{j}' for j in range(json.load(open(f'{D}/heroine_cycles.json'))[d])]
-CA=json.load(open(f'{D}/candle_anim.json'))
-for k,n in (('idle',1),('hurt',CA['hurt']),('defeated',CA['defeated']),('flicker',CA['flicker'])): names+=[f'candle_{k}_{i}' for i in range(n)]
+CA=json.load(open(f'{D}/ghost_anim.json'))
+for k,n in (('idle',1),('hurt',CA['hurt']),('defeated',CA['defeated']),('flicker',CA['flicker'])): names+=[f'ghost_{k}_{i}' for i in range(n)]
 names+=[f'bomb_tick_{j}' for j in range(10)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
 names+=['hud_heart_full','hud_heart_half','hud_heart_empty','heroine_dizzy_0','heroine_defeated_0']
 names+=['tile_floor','tile_floor_1','tile_floor_2','tile_pillar','tile_pillar_glow','tile_wall','tile_crate_0','tile_crate_0_broken','tile_crate_1','tile_crate_1_broken','tile_brazier','tile_brazier_1','tile_brazier_2']
 names+=['tile_exit','pw_bomb','pw_fire','pw_speed']
-names+=['flame_0','flame_1','flame_2','flame_3','candle_spit_0','candle_spit_1','candle_spit_2','candle_spit_3']
+names+=['flame_0','flame_1','flame_2','flame_3','ghost_spit_0','ghost_spit_1','ghost_spit_2','ghost_spit_3']
 NS=json.load(open(f'{D}/heroine_start.json'))['n']; names+=[f'heroine_start_{j}' for j in range(NS)]
 ND=json.load(open(f'{D}/heroine_death.json'))['n']; names+=[f'heroine_death_{j}' for j in range(ND)]
 NW=json.load(open(f'{D}/heroine_win.json'))['n']; names+=[f'heroine_win_{j}' for j in range(NW)]
@@ -31,17 +31,17 @@ for i,(px,py) in pos.items():
 for d in ('down','up','left','right'):
     meta['anims'][f'heroine_walk_{d}']=[f'heroine_cycle_{d}_{j}' for j in range(json.load(open(f'{D}/heroine_cycles.json'))[d])]
     meta['anims'][f'heroine_idle_{d}']=[f'heroine_idle_{d}_{j}' for j in range(24)]
-meta['anims']['candle_idle']=['candle_idle_0']
-meta['anims']['candle_hurt']=[f'candle_hurt_{j}' for j in range(CA['hurt'])]
-meta['anims']['candle_flicker']=[f'candle_flicker_{j}' for j in range(CA['flicker'])]
+meta['anims']['ghost_idle']=['ghost_idle_0']
+meta['anims']['ghost_hurt']=[f'ghost_hurt_{j}' for j in range(CA['hurt'])]
+meta['anims']['ghost_flicker']=[f'ghost_flicker_{j}' for j in range(CA['flicker'])]
 meta['anims']['heroine_win']=[f'heroine_win_{j}' for j in range(NW)]
 meta['anims']['heroine_death']=[f'heroine_death_{j}' for j in range(ND)]
 meta['anims']['heroine_start']=[f'heroine_start_{j}' for j in range(NS)]
 meta['anims']['flame']=['flame_0','flame_1','flame_2','flame_3']
-meta['anims']['candle_spit']=['candle_spit_0','candle_spit_1','candle_spit_2','candle_spit_3']
+meta['anims']['ghost_spit']=['ghost_spit_0','ghost_spit_1','ghost_spit_2','ghost_spit_3']
 meta['anims']['bomb_tick']=[f'bomb_tick_{j}' for j in range(10)]
 for k in ('h','v','c'): meta['anims'][f'fire_{k}']=[f'fire_{k}_{j}' for j in range(3)]
-meta['anims']['candle_defeated']=[f'candle_defeated_{j}' for j in range(CA['defeated'])]
+meta['anims']['ghost_defeated']=[f'ghost_defeated_{j}' for j in range(CA['defeated'])]
 atlas.save(f'{OUT}/atlas.png'); json.dump(meta,open(f'{OUT}/atlas.json','w'),indent=1)
 atlas.resize((atlas.width*3,atlas.height*3),Image.NEAREST).save('work/atlas_3x.png')
 print('atlas',atlas.size,len(names),'frames')

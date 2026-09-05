@@ -7,7 +7,7 @@
   <audio id="ghost-entrance-sound" src="assets/title/audio/character-appear.mp3" preload="auto"></audio>
   <audio id="logo-move-sound" src="assets/title/audio/logo-move.mp3" preload="auto"></audio>
   <audio id="logo-land-sound" src="assets/title/audio/logo-land.mp3" preload="auto"></audio>
-  <audio id="title-ready-voice" src="assets/audio/title_ready_0.mp3" preload="auto"></audio>
+  <audio id="title-ready-voice" src="assets/audio/voice_title_ready_0.mp3" preload="auto"></audio>
   <audio id="start-select-sound" src="assets/title/audio/start-select.mp3" preload="auto"></audio>
   <audio id="menu-change-sound" src="assets/title/audio/menu-change.mp3" preload="auto"></audio>
   <audio id="title-music" src="assets/title/audio/title-music-aac.m4a" preload="auto" loop></audio>
@@ -40,7 +40,7 @@
 const showcase=new URLSearchParams(location.search).get('showcase');   // scripted sound showcase mode
 const bot=new URLSearchParams(location.search).get('bot');             // bot=1: plays by itself through the normal inputs
 // level state must exist before the world is generated below
-const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb', SPIT=0; const flames=[]; const sfxFlame=new Audio('assets/audio/flame.mp3'), sfxFlameWall=new Audio('assets/audio/flamewall.mp3'); sfxFlame.preload=sfxFlameWall.preload='auto';
+const candles=[]; let ENEMIES=2, CRATE_RATE=0.38, ENEMY_SPEED=1.0, POWER='bomb', SPIT=0; const flames=[]; const sfxFlame=new Audio('assets/audio/sfx_ghost_flame.mp3'), sfxFlameWall=new Audio('assets/audio/sfx_flame_impact.mp3'); sfxFlame.preload=sfxFlameWall.preload='auto';
 function sfxPlay(a,v){ const x=a.cloneNode(); x.volume=v; x.play().catch(()=>{}); }
 let RANGE=2, bombCap=1, level=1, score=0, timeLeft=200*60, timeSpawned=false, exitTile=null, powerTile=null, escaped=false;
 const LEVELS=[null,
@@ -60,9 +60,9 @@ let meta=null; fetch('assets/atlas.json?v='+V).then(r=>r.json()).then(m=>meta=m)
 // voice lines: one random clip per bomb drop, never the same one twice in a row
 let dropClips=[], multiClips=[]; let lastClip=-1, lastMulti=-1;
 const loadClips=(url,into)=>fetch(url).then(r=>r.json()).then(list=>{ into.push(...list.map(p=>{const a=new Audio(p); a.preload='auto'; return a;})); });
-let killClips=[]; let lastKill=-1; loadClips('assets/audio/drop.json',dropClips); loadClips('assets/audio/multi.json',multiClips); loadClips('assets/audio/kill.json',killClips); let startClips=[]; loadClips('assets/audio/start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/hurt.json',hurtClips); let levelupClips=[], winningClips=[]; let lastLU=-1, lastWin=-1; let flashWhiteT=0; const sfxUpgrade=new Audio('assets/audio/upgrade.mp3'); sfxUpgrade.preload='auto'; loadClips('assets/audio/levelup.json',levelupClips); loadClips('assets/audio/winning.json',winningClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/enemyhurt.json',enemyHurtClips); loadClips('assets/audio/death.json',deathClips);
-const intro=new Audio('assets/audio/intro.mp3'); intro.preload='auto'; intro.volume=0.9;
-const music=new Audio('assets/audio/music.mp3'); music.preload='auto'; music.loop=true; music.volume=0.45;
+let killClips=[]; let lastKill=-1; loadClips('assets/audio/voice_bomb_drop.json',dropClips); loadClips('assets/audio/voice_bomb_stack.json',multiClips); loadClips('assets/audio/voice_enemy_hit.json',killClips); let startClips=[]; loadClips('assets/audio/voice_game_start.json',startClips); let started=false; let hurtClips=[]; let lastHurt=-1; loadClips('assets/audio/voice_hurt_own_bomb.json',hurtClips); let levelupClips=[], winningClips=[]; let lastLU=-1, lastWin=-1; let flashWhiteT=0; const sfxUpgrade=new Audio('assets/audio/sfx_powerup.mp3'); sfxUpgrade.preload='auto'; loadClips('assets/audio/voice_powerup.json',levelupClips); loadClips('assets/audio/voice_level_clear.json',winningClips); let enemyHurtClips=[], deathClips=[]; let lastEH=-1; loadClips('assets/audio/voice_hurt_by_enemy.json',enemyHurtClips); loadClips('assets/audio/voice_death.json',deathClips);
+const intro=new Audio('assets/audio/music_round_intro.mp3'); intro.preload='auto'; intro.volume=0.9;
+const music=new Audio('assets/audio/music_gameplay.mp3'); music.preload='auto'; music.loop=true; music.volume=0.45;
 let ready=false;   // true between the first key press and the end of the intro jingle: 'READY?' on screen, no movement
 const sfx={}; for(const n of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${n}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
@@ -148,7 +148,7 @@ function drawBomb(b){
 }
 function hit(src){
   lives--; hurtT=90;
-  if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); const g=new Audio('assets/audio/gameover.mp3'); g.volume=0.8; g.play().catch(()=>{}); return; }   // game over sound starts with the dying animation
+  if(lives<=0){ deadT=1; hurtT=0; music.pause(); pickPlay(deathClips,-1); const g=new Audio('assets/audio/sfx_game_over.mp3'); g.volume=0.8; g.play().catch(()=>{}); return; }   // game over sound starts with the dying animation
   if(src==='fire') lastHurt=pickPlay(hurtClips,lastHurt); else lastEH=pickPlay(enemyHurtClips,lastEH);
 }
 function resetGame(){ applyLevel(level); genCrates(); flames.length=0; lives=Math.min(5,lives); deadT=0; gameOver=false; winT=0; cleared=false; hurtT=0; bombs.length=0; fires.length=0; hero.x=1;hero.y=1;hero.px=T;hero.py=T;hero.dir='down';hero.moving=false; spawnEnemies(); }
@@ -249,7 +249,7 @@ function update(){
   // touching a live enemy hurts too (overlap of more than 40% of a tile, in pixels, so brushing past a corner is safe)
   if(deadT===0 && hurtT===0 && candles.some(c=>c.state==='alive' && Math.abs(hero.px-c.px)<T*0.6 && Math.abs(hero.py-c.py)<T*0.6)) { hit('enemy'); }
   if(deadT>0){ deadT++; if(deadT>24*7+60){ gameOver=true; } }
-  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/win.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/winlevel.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
+  if(winT===0 && deadT===0 && !ready && candles.length && candles.every(c=>c.state==='dead') && exitTile && crates[exitTile.y][exitTile.x]===0 && hero.x===exitTile.x && hero.y===exitTile.y){ score+=Math.floor(timeLeft/60)*10; winT=1; music.pause(); if(currentVoice){currentVoice.pause();} const w=new Audio('assets/audio/voice_win_laugh.mp3'); w.volume=0.9; currentVoice=w; w.play().catch(()=>{}); const j=new Audio('assets/audio/sfx_level_clear.mp3'); j.volume=0.7; j.play().catch(()=>{}); }   // laughter + the level-clear jingle together   // her own laughter from the win video
   if(winT>0){ winT++; if(winT>360+30 && !cleared){ cleared=true; lastWin=pickPlay(winningClips,lastWin); } }   // the winning line lands with the LEVEL CLEAR text
   for(const c of candles){
     if(c.state==='alive'){ if(c.flash>0) c.flash--;
@@ -317,11 +317,11 @@ function draw(){
   for(const f of fires){ const ph=Math.floor(f.t/6)%3;
     for(const [cx,cy,k] of f.cells){ drawFrame(meta.anims['fire_'+k][ph],cx*T,cy*T); } }
   for(const c of candles){ if(c.state==='dead') continue; const bob=Math.round(Math.sin(c.t/11)*3);
-    if(c.state==='alive'){ const fl=meta.anims.candle_flicker; const idle=fl[Math.floor(c.t/10)%fl.length];
-      if(c.flash>0 && Math.floor(c.flash/5)%2===0){ const an=meta.anims.candle_hurt; drawFrame(an[Math.floor(c.flash/10)%an.length],c.px,c.py+bob); }
-      else if(c.tele>0){ const sp=meta.anims.candle_spit; drawFrame(sp[Math.min(3,Math.floor((24-c.tele)/6))],c.px,c.py+bob); }   // the spit: the head flame stretches, flares, bursts
+    if(c.state==='alive'){ const fl=meta.anims.ghost_flicker; const idle=fl[Math.floor(c.t/10)%fl.length];
+      if(c.flash>0 && Math.floor(c.flash/5)%2===0){ const an=meta.anims.ghost_hurt; drawFrame(an[Math.floor(c.flash/10)%an.length],c.px,c.py+bob); }
+      else if(c.tele>0){ const sp=meta.anims.ghost_spit; drawFrame(sp[Math.min(3,Math.floor((24-c.tele)/6))],c.px,c.py+bob); }   // the spit: the head flame stretches, flares, bursts
       else drawFrame(idle,c.px,c.py+bob); }
-    else { const an=c.st<24?meta.anims.candle_hurt:meta.anims.candle_defeated; const k=c.st<24?Math.floor(c.st/8)%an.length:Math.min(an.length-1,Math.floor((c.st-24)/9)); drawFrame(an[k],c.px,c.py); } }
+    else { const an=c.st<24?meta.anims.ghost_hurt:meta.anims.ghost_defeated; const k=c.st<24?Math.floor(c.st/8)%an.length:Math.min(an.length-1,Math.floor((c.st-24)/9)); drawFrame(an[k],c.px,c.py); } }
   const an=hero.moving?meta.anims['heroine_walk_'+hero.dir]:meta.anims['heroine_idle_'+hero.dir];
   if(ready){ const an=meta.anims.heroine_start; const k=Math.min(an.length-1,Math.floor((performance.now()-readyAt)/1000*7)); drawFrame(an[k],hero.px,hero.py); }   // start poses at 7 fps, hold the last one
   else if(winT>0){ const an=meta.anims.heroine_win; drawFrame(an[Math.min(an.length-1,Math.floor(winT/(360/an.length)))],hero.px,hero.py); }   // 32 poses spread over the 6 s of the laugh, exactly the video's own timing
@@ -356,7 +356,7 @@ function step(now){
 let _fr=0,_stepMs=0,_t0=performance.now(); const _step=step;
 function fpsReport(){ const dt=(performance.now()-_t0)/1000; const fps=(_fr/dt).toFixed(1), ms=(_stepMs/Math.max(1,_fr)).toFixed(2);
   fetch(`/stat?fps=${fps}&stepms=${ms}&scale=${SCALE}&dpr=${devicePixelRatio}&win=${innerWidth}x${innerHeight}&bombs=${bombs.length}&fires=${fires.length}&title=${document.getElementById('title').hidden?0:1}&started=${started?1:0}&ready=${ready?1:0}&clicks=${window._clicks||0}`).catch(()=>{}); _fr=0;_stepMs=0;_t0=performance.now(); }
-setInterval(fpsReport,3000);
+if(['127.0.0.1','localhost'].includes(location.hostname)) setInterval(fpsReport,3000);   // local dev telemetry only
 step=function(now){ const a=performance.now(); _step(now); _stepMs+=performance.now()-a; _fr++; };
 requestAnimationFrame(step);
 </script><script src="assets/title/sprite-player.js"></script><script src="assets/title/title-audio.js"></script><script src="assets/title/title.js"></script></body></html>

@@ -32,17 +32,17 @@ for k,fr in walk.items():
     bg[0].save(f'{W}/heroine_walk_{k}.gif',save_all=True,append_images=bg[1:],duration=110,loop=0,disposal=2)
     sheet(fr,7,4,bg=(40,4,12,255)).save(f'{W}/strip_walk_{k}.png')
 cj=json.load(open(f'{D}/candle.json'))['rows']
-cand={n:load('candle_'+n,cj[n]) for n in cj}
+cand={n:load('ghost_'+n,cj[n]) for n in cj}
 for k in ('idle','move'):
     fr,shifts=align_x(cand[k],0.6); print('candle align',k,shifts)
     loop=fr+[fr[1]]                      # 0 1 2 1 ping-pong
-    for i,f in enumerate(fr): f.save(f'{D}/anim/candle_{k}_{i}.png')
+    for i,f in enumerate(fr): f.save(f'{D}/anim/ghost_{k}_{i}.png')
     big=[f.resize((f.width*4,f.height*4),Image.NEAREST) for f in loop]
     bg=[Image.new('RGB',b.size,(40,4,12)) for b in big]
     for b,g in zip(big,bg): g.paste(b,(0,0),b)
-    bg[0].save(f'{W}/candle_{k}.gif',save_all=True,append_images=bg[1:],duration=140,loop=0,disposal=2)
+    bg[0].save(f'{W}/ghost_{k}.gif',save_all=True,append_images=bg[1:],duration=140,loop=0,disposal=2)
 for k in ('hurt','defeated'):
-    for i,f in enumerate(cand[k]): f.save(f'{D}/anim/candle_{k}_{i}.png')
+    for i,f in enumerate(cand[k]): f.save(f'{D}/anim/ghost_{k}_{i}.png')
 # frame-difference per row: does anything actually move?
 for k,fr in walk.items():
     a=[np.array(f)[...,3]>0 for f in fr]; diffs=[int((a[i]^a[(i+1)%len(a)]).sum()) for i in range(len(a))]

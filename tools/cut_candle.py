@@ -22,11 +22,11 @@ q,pal=quantise(allf,32)
 k=0
 for name,v in raw.items():
     out[name]=q[k:k+len(v)]; k+=len(v)
-    for j,f in enumerate(out[name]): f.save(f'{OUT}/candle_{name}_{j}.png')
+    for j,f in enumerate(out[name]): f.save(f'{OUT}/ghost_{name}_{j}.png')
 json.dump({'tile':TILE,'frame':[FW,FH],'scale':SCALE,'palette':pal.tolist(),'rows':{n:len(v) for n,v in out.items()}},open(f'{OUT}/candle.json','w'),indent=1)
-sheet(allf,3,max(1,288//FW),bg=(40,4,12,255)).save(f'work/candle_{TILE}_raw_preview.png')
-sheet([f for v in out.values() for f in v],3,max(1,288//FW),bg=(40,4,12,255)).save(f'work/candle_{TILE}_preview.png')
+sheet(allf,3,max(1,288//FW),bg=(40,4,12,255)).save(f'work/ghost_{TILE}_raw_preview.png')
+sheet([f for v in out.values() for f in v],3,max(1,288//FW),bg=(40,4,12,255)).save(f'work/ghost_{TILE}_preview.png')
 # also the raw grid cells at 3x for a sanity check of the cut
 cells=[Image.fromarray(panel[y0:y1,x0:x1]) for (y0,y1) in rows for (x0,x1) in cols]
-sheet(cells,3,3).save('work/candle_cells_3x.png')
+sheet(cells,3,3).save('work/ghost_cells_3x.png')
 print(TILE,'candle frames',len(allf))
