@@ -1182,488 +1182,482 @@
    48,
    60
   ],
-  "candle_idle_1": [
-   144,
-   1476,
-   48,
-   60
-  ],
-  "candle_idle_2": [
-   192,
-   1476,
-   48,
-   60
-  ],
-  "candle_move_0": [
-   240,
-   1476,
-   48,
-   60
-  ],
-  "candle_move_1": [
-   288,
-   1476,
-   48,
-   60
-  ],
-  "candle_move_2": [
-   336,
-   1476,
-   48,
-   60
-  ],
   "candle_hurt_0": [
-   384,
+   144,
    1476,
    48,
    60
   ],
   "candle_hurt_1": [
-   432,
+   192,
    1476,
    48,
    60
   ],
   "candle_hurt_2": [
-   0,
-   1536,
+   240,
+   1476,
    48,
    60
   ],
   "candle_defeated_0": [
-   48,
-   1536,
+   288,
+   1476,
    48,
    60
   ],
   "candle_defeated_1": [
-   96,
-   1536,
+   336,
+   1476,
+   48,
+   60
+  ],
+  "candle_defeated_2": [
+   384,
+   1476,
+   48,
+   60
+  ],
+  "candle_defeated_3": [
+   432,
+   1476,
    48,
    60
   ],
   "candle_flicker_0": [
-   144,
+   0,
    1536,
    48,
    60
   ],
   "candle_flicker_1": [
-   192,
+   48,
    1536,
    48,
    60
   ],
   "candle_flicker_2": [
-   240,
+   96,
    1536,
    48,
    60
   ],
   "candle_flicker_3": [
-   288,
+   144,
    1536,
    48,
    60
   ],
   "candle_flicker_4": [
-   336,
+   192,
    1536,
    48,
    60
   ],
   "candle_flicker_5": [
-   384,
+   240,
    1536,
    48,
    60
   ],
   "candle_flicker_6": [
-   432,
+   288,
    1536,
    48,
    60
   ],
   "candle_flicker_7": [
+   336,
+   1536,
+   48,
+   60
+  ],
+  "candle_flicker_8": [
+   384,
+   1536,
+   48,
+   60
+  ],
+  "candle_flicker_9": [
+   432,
+   1536,
+   48,
+   60
+  ],
+  "candle_flicker_10": [
    0,
    1596,
    48,
    60
   ],
-  "candle_flicker_8": [
+  "candle_flicker_11": [
    48,
-   1596,
-   48,
-   60
-  ],
-  "candle_flicker_9": [
-   96,
    1596,
    48,
    60
   ],
   "heroine_start_0": [
-   144,
+   96,
    1596,
    48,
    60
   ],
   "heroine_start_1": [
-   192,
+   144,
    1596,
    48,
    60
   ],
   "heroine_start_2": [
-   240,
+   192,
    1596,
    48,
    60
   ],
   "heroine_start_3": [
-   288,
+   240,
    1596,
    48,
    60
   ],
   "heroine_start_4": [
-   336,
+   288,
    1596,
    48,
    60
   ],
   "heroine_start_5": [
-   384,
+   336,
    1596,
    48,
    60
   ],
   "heroine_start_6": [
-   432,
+   384,
    1596,
    48,
    60
   ],
   "heroine_start_7": [
-   0,
-   1656,
+   432,
+   1596,
    48,
    60
   ],
   "heroine_start_8": [
-   48,
+   0,
    1656,
    48,
    60
   ],
   "heroine_start_9": [
-   96,
+   48,
    1656,
    48,
    60
   ],
   "heroine_start_10": [
-   144,
+   96,
    1656,
    48,
    60
   ],
   "heroine_start_11": [
-   192,
+   144,
    1656,
    48,
    60
   ],
   "heroine_start_12": [
-   240,
+   192,
    1656,
    48,
    60
   ],
   "heroine_start_13": [
-   288,
+   240,
    1656,
    48,
    60
   ],
   "heroine_start_14": [
-   336,
+   288,
    1656,
    48,
    60
   ],
   "heroine_start_15": [
-   384,
+   336,
    1656,
    48,
    60
   ],
   "heroine_start_16": [
-   432,
+   384,
    1656,
    48,
    60
   ],
   "heroine_start_17": [
-   0,
-   1716,
+   432,
+   1656,
    48,
    60
   ],
   "heroine_start_18": [
-   48,
+   0,
    1716,
    48,
    60
   ],
   "heroine_start_19": [
-   96,
+   48,
    1716,
    48,
    60
   ],
   "heroine_start_20": [
-   144,
+   96,
    1716,
    48,
    60
   ],
   "heroine_start_21": [
-   192,
+   144,
    1716,
    48,
    60
   ],
   "heroine_start_22": [
-   240,
+   192,
    1716,
    48,
    60
   ],
   "heroine_start_23": [
-   288,
+   240,
    1716,
    48,
    60
   ],
   "heroine_start_24": [
-   336,
+   288,
    1716,
    48,
    60
   ],
   "heroine_start_25": [
-   384,
+   336,
    1716,
    48,
    60
   ],
   "heroine_start_26": [
-   432,
+   384,
    1716,
    48,
    60
   ],
   "heroine_start_27": [
-   0,
-   1776,
+   432,
+   1716,
    48,
    60
   ],
   "heroine_start_28": [
-   48,
+   0,
    1776,
    48,
    60
   ],
   "heroine_start_29": [
-   96,
+   48,
    1776,
    48,
    60
   ],
   "heroine_start_30": [
-   144,
+   96,
    1776,
    48,
    60
   ],
   "heroine_start_31": [
-   192,
+   144,
    1776,
    48,
    60
   ],
   "fire_h_0": [
-   240,
+   192,
    1776,
    48,
    48
   ],
   "fire_h_1": [
-   288,
+   240,
    1776,
    48,
    48
   ],
   "fire_h_2": [
-   336,
+   288,
    1776,
    48,
    48
   ],
   "fire_v_0": [
-   384,
+   336,
    1776,
    48,
    48
   ],
   "fire_v_1": [
-   432,
+   384,
    1776,
    48,
    48
   ],
   "fire_v_2": [
-   0,
-   1836,
+   432,
+   1776,
    48,
    48
   ],
   "fire_c_0": [
-   48,
+   0,
    1836,
    48,
    48
   ],
   "fire_c_1": [
-   96,
+   48,
    1836,
    48,
    48
   ],
   "fire_c_2": [
-   144,
+   96,
    1836,
    48,
    48
   ],
   "tile_floor": [
-   192,
+   144,
    1836,
    48,
    48
   ],
   "tile_floor_1": [
-   240,
+   192,
    1836,
    48,
    48
   ],
   "tile_floor_2": [
-   288,
+   240,
    1836,
    48,
    48
   ],
   "tile_pillar": [
-   336,
+   288,
    1836,
    48,
    48
   ],
   "tile_pillar_glow": [
-   384,
+   336,
    1836,
    48,
    48
   ],
   "tile_wall": [
-   432,
+   384,
    1836,
    48,
    48
   ],
   "tile_crate_0": [
-   0,
-   1884,
+   432,
+   1836,
    48,
    48
   ],
   "tile_crate_0_broken": [
-   48,
+   0,
    1884,
    48,
    48
   ],
   "tile_crate_1": [
-   96,
+   48,
    1884,
    48,
    48
   ],
   "tile_crate_1_broken": [
-   144,
+   96,
    1884,
    48,
    48
   ],
   "tile_brazier": [
-   192,
+   144,
    1884,
    48,
    48
   ],
   "tile_brazier_1": [
-   240,
+   192,
    1884,
    48,
    48
   ],
   "tile_brazier_2": [
-   288,
+   240,
    1884,
    48,
    48
   ],
   "tile_exit": [
-   336,
+   288,
    1884,
    48,
    48
   ],
   "pw_bomb": [
-   384,
+   336,
    1884,
    48,
    48
   ],
   "pw_fire": [
-   432,
+   384,
    1884,
    48,
    48
   ],
   "pw_speed": [
-   0,
-   1932,
+   432,
+   1884,
    48,
    48
   ],
   "hud_heart_full": [
-   48,
-   1932,
+   480,
+   1884,
    24,
    24
   ],
   "hud_heart_half": [
-   72,
+   0,
    1932,
    24,
    24
   ],
   "hud_heart_empty": [
-   96,
+   24,
    1932,
    24,
    24
@@ -1815,16 +1809,7 @@
    "heroine_idle_right_23"
   ],
   "candle_idle": [
-   "candle_idle_0",
-   "candle_idle_1",
-   "candle_idle_2",
-   "candle_idle_1"
-  ],
-  "candle_move": [
-   "candle_move_0",
-   "candle_move_1",
-   "candle_move_2",
-   "candle_move_1"
+   "candle_idle_0"
   ],
   "candle_hurt": [
    "candle_hurt_0",
@@ -1841,7 +1826,9 @@
    "candle_flicker_6",
    "candle_flicker_7",
    "candle_flicker_8",
-   "candle_flicker_9"
+   "candle_flicker_9",
+   "candle_flicker_10",
+   "candle_flicker_11"
   ],
   "heroine_win": [
    "heroine_win_0",
@@ -1966,7 +1953,9 @@
   ],
   "candle_defeated": [
    "candle_defeated_0",
-   "candle_defeated_1"
+   "candle_defeated_1",
+   "candle_defeated_2",
+   "candle_defeated_3"
   ]
  }
 }

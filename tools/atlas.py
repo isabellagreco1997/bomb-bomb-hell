@@ -6,7 +6,8 @@ names=[]
 for d in ('down','up','left','right'):
     names+=[f'heroine_idle_{d}_{j}' for j in range(24)]
     names+= [f'heroine_cycle_{d}_{j}' for j in range(json.load(open(f'{D}/heroine_cycles.json'))[d])]
-for k,n in (('idle',3),('move',3),('hurt',3),('defeated',2),('flicker',10)): names+=[f'candle_{k}_{i}' for i in range(n)]
+CA=json.load(open(f'{D}/candle_anim.json'))
+for k,n in (('idle',1),('hurt',CA['hurt']),('defeated',CA['defeated']),('flicker',CA['flicker'])): names+=[f'candle_{k}_{i}' for i in range(n)]
 names+=[f'bomb_tick_{j}' for j in range(10)]
 names+=[f'fire_{k}_{j}' for k in ('h','v','c') for j in range(3)]
 names+=['hud_heart_full','hud_heart_half','hud_heart_empty','heroine_dizzy_0','heroine_defeated_0']
@@ -29,16 +30,15 @@ for i,(px,py) in pos.items():
 for d in ('down','up','left','right'):
     meta['anims'][f'heroine_walk_{d}']=[f'heroine_cycle_{d}_{j}' for j in range(json.load(open(f'{D}/heroine_cycles.json'))[d])]
     meta['anims'][f'heroine_idle_{d}']=[f'heroine_idle_{d}_{j}' for j in range(24)]
-meta['anims']['candle_idle']=['candle_idle_0','candle_idle_1','candle_idle_2','candle_idle_1']
-meta['anims']['candle_move']=['candle_move_0','candle_move_1','candle_move_2','candle_move_1']
-meta['anims']['candle_hurt']=['candle_hurt_0','candle_hurt_1','candle_hurt_2']
-meta['anims']['candle_flicker']=[f'candle_flicker_{j}' for j in range(10)]
+meta['anims']['candle_idle']=['candle_idle_0']
+meta['anims']['candle_hurt']=[f'candle_hurt_{j}' for j in range(CA['hurt'])]
+meta['anims']['candle_flicker']=[f'candle_flicker_{j}' for j in range(CA['flicker'])]
 meta['anims']['heroine_win']=[f'heroine_win_{j}' for j in range(NW)]
 meta['anims']['heroine_death']=[f'heroine_death_{j}' for j in range(ND)]
 meta['anims']['heroine_start']=[f'heroine_start_{j}' for j in range(NS)]
 meta['anims']['bomb_tick']=[f'bomb_tick_{j}' for j in range(10)]
 for k in ('h','v','c'): meta['anims'][f'fire_{k}']=[f'fire_{k}_{j}' for j in range(3)]
-meta['anims']['candle_defeated']=['candle_defeated_0','candle_defeated_1']
+meta['anims']['candle_defeated']=[f'candle_defeated_{j}' for j in range(CA['defeated'])]
 atlas.save(f'{OUT}/atlas.png'); json.dump(meta,open(f'{OUT}/atlas.json','w'),indent=1)
 atlas.resize((atlas.width*3,atlas.height*3),Image.NEAREST).save('work/atlas_3x.png')
 print('atlas',atlas.size,len(names),'frames')
