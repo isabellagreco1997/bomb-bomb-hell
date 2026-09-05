@@ -68,13 +68,13 @@
   document.addEventListener('keydown',event=>{
     if(title.hidden||playing||help.open||!loaded||event.altKey||event.ctrlKey||event.metaKey) return;
     if(opening){
-      if(['Enter',' ','Escape'].includes(event.key)){
+      if(['Enter',' ','Escape','e','E'].includes(event.key)){
         event.preventDefault();
         if(!event.repeat) finishIntro(true);
       }
       return;
     }
-    if(['ArrowUp','ArrowDown','Enter',' '].includes(event.key)){
+    if(['ArrowUp','ArrowDown','Enter',' ','e','E'].includes(event.key)){   // E selects too, same key that drops a bomb
       event.preventDefault();
       if(event.repeat) return;
       if(event.key==='ArrowUp') select(selected-1,true);
