@@ -46,8 +46,8 @@ const LEVELS=[null,
   {w:13,h:11,enemies:1,crates:0.25,speed:1.0,power:'bomb',time:200},
   {w:15,h:13,enemies:2,crates:0.30,speed:1.1,power:'fire',time:240},
   {w:19,h:13,enemies:3,crates:0.35,speed:1.2,power:'speed',time:300},
-  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb',time:420},
-  {w:27,h:17,enemies:6,crates:0.36,speed:1.5,power:'fire',time:500}];
+  {w:23,h:15,enemies:4,crates:0.38,speed:1.35,power:'bomb',time:480},
+  {w:27,h:17,enemies:6,crates:0.36,speed:1.5,power:'fire',time:600}];
 function applyLevel(n){ const L=LEVELS[n]; WC=L.w; WR=L.h; ENEMIES=L.enemies; CRATE_RATE=L.crates; ENEMY_SPEED=L.speed; POWER=L.power; timeLeft=L.time*60; timeSpawned=false; }
 const T=48, COLS=13, ROWS=11; let WC=13, WR=11; const SCALE=Math.max(1,Math.floor(Math.min(innerWidth/(COLS*T),innerHeight/(ROWS*T+40))));   // COLS x ROWS = the view; WC x WR = the world
 const HUD=40; const cv=document.getElementById('c'); cv.width=COLS*T; cv.height=ROWS*T+HUD; cv.style.width=cv.width*SCALE+'px'; cv.style.height=cv.height*SCALE+'px';
