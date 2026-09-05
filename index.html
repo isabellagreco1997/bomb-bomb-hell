@@ -77,7 +77,7 @@ let killClips=[]; let lastKill=-1; loadClips('assets/audio/voice_bomb_drop.json'
 const intro=new Audio('assets/audio/music_round_intro.mp3'); intro.preload='auto'; intro.volume=0.9;
 const music=new Audio('assets/audio/music_gameplay.mp3'); music.preload='auto'; music.loop=true; music.volume=0.45;
 let ready=false;   // true between the first key press and the end of the intro jingle: 'READY?' on screen, no movement
-const sfx={}; for(const [n,f] of ['explode','tick','step']){ sfx[n]=new Audio(`assets/audio/${f}.mp3`); sfx[n].preload='auto'; }
+const sfx={}; for(const [n,f] of [['explode','sfx_explosion'],['tick','sfx_fuse_tick'],['step','sfx_footstep']]){ sfx[n]=new Audio(`assets/audio/${f}.mp3`); sfx[n].preload='auto'; }
 function play(n,vol){ const a=sfx[n].cloneNode(); a.volume=vol; a.play().catch(()=>{}); }
 let currentVoice=null;
 // one voice at a time: a new line cuts off whatever she was saying (effects like tick/blast/steps are separate and untouched)
