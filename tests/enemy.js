@@ -1,0 +1,10 @@
+const puppeteer=require('puppeteer-core');
+(async()=>{const b=await puppeteer.launch({executablePath:process.env.CHROME||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:'new'});
+const p=await b.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.setViewport({width:624,height:568}); await p.goto('http://127.0.0.1:8000/index.html?auto=1'); await new Promise(r=>setTimeout(r,2500));
+await p.screenshot({path:'tests/out/world_view.png'});
+const s1=await p.evaluate(()=>{const c=candles[0]; fires.push({cells:[[c.x,c.y,'c']],t:0}); return [c.hp,c.state]});
+await new Promise(r=>setTimeout(r,120)); const s2=await p.evaluate(()=>[candles[0].hp,candles[0].state,candles[0].flash]);
+await new Promise(r=>setTimeout(r,1200)); const s3=await p.evaluate(()=>{const c=candles[0]; fires.push({cells:[[c.x,c.y,'c']],t:0}); return [c.hp,c.state,c.flash]});
+await new Promise(r=>setTimeout(r,120)); const s4=await p.evaluate(()=>[candles[0].hp,candles[0].state]);
+console.log('before',s1,'after hit 1',s2,'before hit 2',s3,'after hit 2',s4,'errors',errs); await b.close();})();

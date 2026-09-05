@@ -25,9 +25,9 @@ You are working on a finished, playable browser game. Read this before touching 
 
 ## Testing
 
-- `work/` scripts (not shipped) drive headless Chrome with puppeteer-core: `smoke.js`, `keys.js`, `lives.js`, `enemy.js`, `spit.js`, `levels.js`, `loop.js`, `bot.js`, `bot_full.js`.
+- `tests/` drives headless Chrome with puppeteer-core (`npm install`, set `CHROME` to your Chrome binary if it is not in /Applications): `npm test` runs smoke, keys, enemy and spit checks; `npm run test:levels` cheats through the level flow; `npm run bot` lets the bot play a full game (15 to 20 minutes) and prints where the balance breaks. Serve the game on port 8000 first (`npm run serve`).
 - `?showcase=1` runs a scripted round through every sound with captions. `?bot=1` plays the game by itself; a full run takes 15 to 20 minutes and reports where the balance breaks.
-- Serve locally (`python3 -m http.server`); the atlas will not load from `file://`.
+- Serve locally (`npm run serve`); the atlas will not load from `file://`.
 
 ## Extending
 

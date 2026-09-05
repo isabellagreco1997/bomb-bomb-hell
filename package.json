@@ -1,0 +1,13 @@
+{
+  "name": "bomb-bomb-hell",
+  "version": "1.0.0",
+  "description": "Bomberman-style browser game set in hell. One HTML file, AI-generated art and voices.",
+  "private": true,
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "test": "node tests/smoke.js && node tests/keys.js && node tests/enemy.js && node tests/spit.js",
+    "test:levels": "node tests/levels.js && node tests/loop.js",
+    "bot": "node tests/bot_full.js"
+  },
+  "devDependencies": { "puppeteer-core": "^23.0.0" }
+}

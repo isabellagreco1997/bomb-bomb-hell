@@ -1,0 +1,13 @@
+const puppeteer=require('puppeteer-core');
+(async()=>{const b=await puppeteer.launch({executablePath:process.env.CHROME||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:'new'});
+const p=await b.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.setViewport({width:624,height:568}); await p.goto('http://127.0.0.1:8000/index.html'); await new Promise(r=>setTimeout(r,1500));
+await p.keyboard.press('Space'); await new Promise(r=>setTimeout(r,300));
+const st=async()=>await p.evaluate(()=>({lives,hurtT,deadT,gameOver}));
+console.log('start',await st());
+await p.evaluate(()=>hit('fire')); console.log('after hit 1',await st()); await p.screenshot({path:'tests/out/hud_2hearts.png'});
+await p.evaluate(()=>{hurtT=0;hit('enemy')}); console.log('after hit 2',await st());
+await p.evaluate(()=>{hurtT=0;hit('fire')}); console.log('after hit 3',await st()); await p.screenshot({path:'tests/out/hud_dead.png'});
+await new Promise(r=>setTimeout(r,2800)); console.log('later',await st()); await p.screenshot({path:'tests/out/hud_gameover.png'});
+await p.keyboard.press('Space'); await new Promise(r=>setTimeout(r,300)); console.log('after key',await st());
+console.log('errors',errs); await b.close();})();

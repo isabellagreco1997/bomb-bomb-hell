@@ -1,0 +1,12 @@
+const puppeteer=require('puppeteer-core');
+(async()=>{const b=await puppeteer.launch({executablePath:process.env.CHROME||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:'new',args:['--autoplay-policy=no-user-gesture-required']});
+const p=await b.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{if(m.type()==='error'&&!m.text().includes('404'))errs.push(m.text())});
+await p.setViewport({width:736,height:600}); await p.goto('http://127.0.0.1:8000/index.html'); await new Promise(r=>setTimeout(r,2500));
+await p.screenshot({path:'tests/out/title_shot.png'});
+await p.click('#play'); await new Promise(r=>setTimeout(r,1000));
+const s1=await p.evaluate(()=>({started,ready,canvas:!document.getElementById('c').hidden}));
+await new Promise(r=>setTimeout(r,5500));
+const s2=await p.evaluate(()=>({ready,music:!music.paused}));
+await p.keyboard.down('ArrowRight'); await new Promise(r=>setTimeout(r,800)); await p.keyboard.up('ArrowRight');
+const s3=await p.evaluate(()=>({hero:[hero.x,hero.y]}));
+console.log('after play',s1,'after 6.5 s',s2,'after right',s3,'errors',errs); await b.close();})();
